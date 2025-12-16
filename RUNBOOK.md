@@ -1,61 +1,246 @@
-# RUNBOOK (MinIO + Airflow)
+# RUNBOOK — Open Source Data Lake (Community Edition)
 
-Copy/pasteable PowerShell steps to bring the stack up cleanly, verify MinIO buckets, and sanity-check Airflow DAGs. Commands were derived from `RUNBOOK.history`.
+This runbook describes how to **cleanly tear down**, **rebuild**, and **operate** the Open Source Data Lake – Community Edition using Docker Compose.
 
-## 0) Prereqs
-- Docker Desktop with Compose v2.
-- Ports 9000/9001/8080 free.
-- Run from repo root: `C:\Users\marek\Downloads\minio-test`.
+It is intended to support:
 
-## 1) Optional clean reset
-```powershell
-docker compose down -v
-docker image rm apache/airflow:2.10.3-custom 2>$null   # force rebuild of custom image
-Remove-Item -Recurse -Force .\logs 2>$null              # clear local logs
-```
+* reproducible local deployments,
+* end-to-end demonstrations,
+* Medium walkthroughs,
+* and onboarding of contributors or readers.
 
-## 2) Prepare local mounts
-```powershell
-New-Item -ItemType Directory -Force -Path dags,logs,plugins | Out-Null
-```
+---
 
-## 3) Build the Airflow image
-```powershell
-docker compose build airflow
-```
+## Scope
 
-## 4) Bring everything up
-```powershell
-docker compose up -d
+This runbook covers the local Docker Compose stack consisting of:
+
+* **MinIO** — object storage (raw / conformed / curated zones)
+* **Apache Airflow** — orchestration and ingestion
+* **Jupyter** — EDA and data science notebooks
+
+It applies to the **Community Edition** only.
+
+---
+
+## Preconditions
+
+* Docker Engine installed and running
+* Docker Compose v2 (`docker compose`) available
+* You are in the repository root directory
+  (the folder containing `docker-compose.yaml`)
+
+Optional sanity check:
+
+```bash
 docker ps --format '{{.Names}}: {{.Status}}' | sort
 ```
 
-## 5) Check MinIO buckets
-```powershell
-docker compose exec -T minio mc ls local
-docker compose exec -T minio mc ls -r local/raw | head -n 10
-docker compose exec -T minio mc ls -r local/conformed | head -n 10
-docker compose exec -T minio mc ls -r local/curated | head -n 10
+---
+
+## Project Structure (Operational View)
+
+```
+.
+├── docker-compose.yaml
+├── docker/
+│   ├── airflow/
+│   │   └── Dockerfile
+│   └── jupyter/
+│       └── Dockerfile
+├── dags/
+├── notebooks/
+│   └── eda_output/    # runtime (recreated by notebooks)
+├── logs/              # runtime (recreated on startup)
+└── RUNBOOK.md
 ```
 
-## 6) Airflow sanity checks
-```powershell
-docker exec -it airflow airflow users list
-docker exec -it airflow airflow dags list
+Stateful runtime data is held in **Docker volumes**, not in the repository.
+
+---
+
+## Clean Teardown (Reset to Zero)
+
+Use this sequence when preparing a clean demo, Medium article, or reproducibility test.
+
+### 1. Stop containers and remove volumes (critical)
+
+```bash
+docker compose down -v
 ```
 
-## 7) Trigger and inspect a DAG (example: ASX OHLCV)
-```powershell
-docker exec -it airflow airflow dags trigger raw_market_ohlcv_daily_asx
-Start-Sleep -Seconds 30
-docker compose exec -T minio mc ls -r local/raw/tabular/market_ohlcv_daily | head -n 20
-docker compose exec -T minio mc ls -r local/conformed/tabular/market_ohlcv_daily | head -n 20
-docker compose exec -T minio mc ls -r local/curated/tabular/market_ohlcv_daily | head -n 20
+This removes:
+
+* Airflow metadata database
+* MinIO object storage (all buckets and objects)
+* Jupyter runtime state
+* Named and anonymous volumes attached to the stack
+
+---
+
+### 2. Remove custom images built by this project
+
+(Optional but recommended for a true clean build.)
+
+List relevant images:
+
+```bash
+docker images | grep -E 'airflow|jupyter'
 ```
 
-## 8) Shutdown
-```powershell
-docker compose down --remove-orphans
+Remove them:
+
+```bash
+docker image rm airflow-custom:latest jupyter-minimal-notebook:custom 2>/dev/null
 ```
 
-If you need a full reset including volumes, rerun the clean reset step (down -v, remove image, remove logs) before the next start.
+Image names may vary slightly depending on local tagging.
+
+---
+
+### 3. Prune dangling Docker artefacts
+
+```bash
+docker system prune -f
+docker volume prune -f
+docker network prune -f
+```
+
+This removes unused artefacts without affecting other active projects.
+
+---
+
+### 4. Clean host-side runtime directories
+
+These directories hold generated artefacts and should not be reused for a clean run.
+
+#### macOS / Linux
+
+```bash
+rm -rf logs eda_output .ipynb_checkpoints
+```
+
+#### Windows (PowerShell)
+
+```powershell
+Remove-Item -Recurse -Force .\logs 2>$null
+Remove-Item -Recurse -Force .\eda_output 2>$null
+Remove-Item -Recurse -Force .\.ipynb_checkpoints 2>$null
+```
+
+Do **not** delete:
+
+* `docker/`
+* `dags/`
+* `notebooks/`
+* `docker-compose.yaml`
+
+---
+
+### 5. Verify clean state
+
+```bash
+docker ps --format '{{.Names}}: {{.Status}}' | sort
+```
+
+No containers from this project should be running.
+
+---
+
+## Clean Build and Startup
+
+This is the **canonical startup sequence**.
+
+### 1. Build images
+
+```bash
+docker compose build
+```
+
+This builds:
+
+* the custom Airflow image
+* the custom Jupyter image with baked-in data science libraries
+
+---
+
+### 2. Start the stack
+
+```bash
+docker compose up -d
+```
+
+---
+
+### 3. Verify container health
+
+```bash
+docker ps --format '{{.Names}}: {{.Status}}' | sort
+```
+
+You should see containers for:
+
+* airflow
+* minio
+* jupyter
+* supporting services (scheduler, webserver, etc.)
+
+---
+
+## Service Access
+
+### Airflow
+
+* URL: `http://localhost:8080`
+* Purpose: ingestion, orchestration, DAG execution
+
+### MinIO
+
+* URL: `http://localhost:9001`
+* Purpose: object storage (raw / conformed / curated)
+* Credentials: as defined in `docker-compose.yaml`
+
+### Jupyter
+
+* URL: `http://localhost:8888`
+* Purpose: EDA and data science notebooks
+* Token: as defined in `docker-compose.yaml`
+
+---
+
+## Operational Notes
+
+### Stateless vs Stateful Components
+
+| Component       | State location |
+| --------------- | -------------- |
+| Airflow         | Docker volumes |
+| MinIO           | Docker volumes |
+| Jupyter runtime | Docker volumes |
+| DAGs            | Git-tracked    |
+| Notebooks       | Git-tracked    |
+
+A full teardown (`docker compose down -v`) **destroys all data**.
+
+---
+
+### Reproducibility Guarantee
+
+If the runbook steps are followed exactly:
+
+* the environment is deterministic,
+* no hidden state persists,
+* results can be reproduced by third parties.
+
+This is intentional and foundational to the Community Edition.
+
+---
+
+## Intended Usage
+
+This runbook supports:
+
+* Medium walkthroughs (“from zero to running data lake”)
+* Local experimentation
+* Teaching and demonstration
+* Foundation for Supported / Cloud / Enterprise tiers
