@@ -1,0 +1,17 @@
+# Runtime state
+logs/
+data/
+volumes/
+
+# Secrets
+.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db

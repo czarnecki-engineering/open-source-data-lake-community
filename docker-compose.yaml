@@ -1,0 +1,132 @@
+version: "3.9"
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO...' &&
+      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc mb --ignore-existing local/conformed &&
+      mc mb --ignore-existing local/raw &&
+      mc mb --ignore-existing local/curated &&
+      mc ls local &&
+      echo 'MinIO buckets initialised'
+      "
+    restart: "no"
+
+  airflow:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    image: apache/airflow:2.10.3-custom
+#    image: apache/airflow:2.10.3
+    container_name: airflow
+    depends_on:
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      # Airflow core (simplified single-container)
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+
+      # MinIO / S3-compatible defaults for DAG code
+      S3_ENDPOINT_URL: "http://minio:9000"
+      AWS_ACCESS_KEY_ID: "minioadmin"
+      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      AWS_DEFAULT_REGION: "us-east-1"
+
+      # Optional permissions helper (Linux/WSL; harmless elsewhere)
+      AIRFLOW_UID: "${AIRFLOW_UID:-50000}"
+
+      # Install DAG dependencies at container start (no Dockerfile)
+      PIP_ADDITIONAL_REQUIREMENTS: "yfinance pyarrow pandas"
+
+      # Airflow Variable override via env (no UI)
+      AIRFLOW_VAR_ASX_TICKERS: "BHP,CBA,CSL,RIO,WES"
+
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config:ro
+      - airflow-db:/opt/airflow
+
+    command: >
+      bash -lc "
+      airflow db migrate &&
+      airflow users create --username minioadmin --password minioadmin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+      airflow webserver & airflow scheduler
+      "
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  airflow-user-init:
+    image: apache/airflow:2.10.3-custom
+    container_name: airflow-user-init
+    depends_on:
+      airflow:
+        condition: service_started
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+    volumes:
+      - airflow-db:/opt/airflow
+    entrypoint: /bin/bash
+    command: >
+      -lc "
+      airflow db migrate &&
+      airflow users create --username minioadmin --password minioadmin --firstname Admin --lastname User --role Admin --email admin@example.com || true
+      "
+    restart: "no"
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: docker/jupyter/Dockerfile
+    image: jupyter/minimal-notebook:custom
+    container_name: jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      JUPYTER_TOKEN: "jupyter"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    restart: "no"
+
+volumes:
+  minio-data:
+  airflow-db:
