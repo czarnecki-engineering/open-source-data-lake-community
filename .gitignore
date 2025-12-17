@@ -2,6 +2,7 @@
 logs/
 data/
 volumes/
+notebooks/eda_output/
 
 # Secrets
 .env
