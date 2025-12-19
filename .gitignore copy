@@ -1,0 +1,19 @@
+# Runtime state
+logs/
+data/
+volumes/
+notebooks/eda_output/
+config/asx200_tickers.csv
+
+# Secrets
+.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
