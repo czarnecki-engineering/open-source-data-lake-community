@@ -127,6 +127,19 @@ services:
       - ./notebooks:/home/jovyan/work
     restart: "no"
 
+  php:
+    image: dunglas/frankenphp:latest
+    container_name: php
+    ports:
+      - "8088:80"
+    volumes:
+      # Put your live-edit PHP files here (e.g., ./php/index.php)
+      - ./php:/app/public
+    environment:
+      SERVER_NAME: ":80"
+      TZ: Australia/Melbourne
+    restart: unless-stopped
+
 volumes:
   minio-data:
   airflow-db:
