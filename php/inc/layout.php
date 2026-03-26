@@ -50,7 +50,7 @@ $PUBLIC_BASE = 'https://czarneckii.com';
       <span class="nav-toggle-bar"></span>
       <span class="nav-toggle-bar"></span>
     </button>
-
+<!-- 
     <ul id="site-menu" class="nav-menu">
       <li><a href="<?= $PUBLIC_BASE ?>/#features">Features</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/variants/">Variants</a></li>
@@ -61,6 +61,13 @@ $PUBLIC_BASE = 'https://czarneckii.com';
       <li><a href="https://github.com/czarnecki-engineering/open-source-data-lake-community">Download</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/contact/">Contact</a></li>
     </ul>
+ -->
+    <ul id="site-menu" class="nav-menu">
+      <li><a href="<?= $PUBLIC_BASE ?>/local/">My Data Lake</a></li>
+      <li><a href="<?= $PUBLIC_BASE ?>/open-data-lake/">Open Data Lake</a></li>
+      <li><a href="<?= $PUBLIC_BASE ?>/insights/">Insights</a></li>
+      <li><a href="<?= $PUBLIC_BASE ?>/contact/">Contact</a></li>
+    </ul>    
   </div>
 
   <script>
