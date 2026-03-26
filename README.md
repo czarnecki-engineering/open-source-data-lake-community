@@ -1,29 +1,53 @@
-# Open Source Data Lake – Community Edition
+# Project Name
+Open Source Data Lake - Community Edition
 
-This repository provides a Docker Compose–based reference implementation of an
-Open Source Data Lake using:
+# What This Repository Does
+Provides a local Docker Compose stack that combines MinIO object storage, Apache Airflow orchestration, a Jupyter notebook environment, and a small PHP service index. The Airflow DAGs demonstrate a simple raw -> conformed -> curated flow using ASX OHLCV data and a heartbeat pipeline.
 
-- MinIO (object storage)
-- Apache Airflow (orchestration)
-- Jupyter (EDA and data science)
+# Main Components
+- MinIO (S3-compatible object storage + console).
+- MinIO init job (creates `raw`, `conformed`, `curated` buckets).
+- Apache Airflow (single-container webserver + scheduler, SequentialExecutor, SQLite metadata DB).
+- Jupyter (minimal notebook server with common data libraries).
+- PHP (FrankenPHP container serving `php/` as a simple service index).
 
-## Target users
+# Prerequisites
+- Docker Engine
+- Docker Compose v2 (`docker compose`)
 
-- **Data Engineers**
-  - Airflow DAGs
-  - Medallion architecture (raw → conformed → curated)
-  - Object storage with MinIO
+# How to Run
+The canonical steps are in `RUNBOOK.md`. In brief, from the repo root:
 
-- **Data Scientists**
-  - Jupyter notebooks
-  - Exploratory Data Analysis on curated datasets
+1) Create `config/asx200_tickers.csv` (see `config/asx200_tickers_top3.csv` or `config/asx200_tickers_top100.csv` as examples).
+2) Build images: `docker compose build`
+3) Start services: `docker compose up -d`
 
-## Architecture
+If any step fails, follow the detailed teardown/rebuild flow in `RUNBOOK.md`.
 
-- Docker Compose–based local deployment
-- Three-layer medallion data lake
-- Scheduled heartbeat pipeline
-- Market data ingestion (ASX)
+# What to Expect When Running
+- Airflow UI: `http://localhost:8080` (user/password are both `minioadmin`).
+- MinIO Console: `http://localhost:9001` (user/password are both `minioadmin`).
+- MinIO S3 API: `http://localhost:9000`.
+- Jupyter: `http://localhost:8888` (token is `jupyter`).
+- PHP service index: `http://localhost:8088`.
 
-This repository is the canonical **Community Edition** and serves as the
-foundation for higher tiers (Supported, Cloud, Enterprise).
+MinIO buckets `raw`, `conformed`, and `curated` are created automatically by the init container. Airflow DAGs write and transform data inside those buckets.
+
+# Repository Structure
+- `docker-compose.yaml`: service definitions and runtime wiring.
+- `docker/`: Dockerfiles for Airflow and Jupyter.
+- `dags/`: Airflow DAGs (heartbeat, ASX OHLCV ingestion, raw->conformed, conformed->curated).
+- `config/`: CSV ticker config required by ASX DAGs.
+- `notebooks/`: example notebooks for exploration.
+- `php/`: simple PHP landing/health pages.
+
+# Related Documentation
+- `PROJECT_CONTEXT.md`
+- `RUNBOOK.md`
+- `CONTENTS.md`
+- `TODO.md`
+
+# Current Status / Notes
+- The ASX OHLCV DAGs depend on a local `config/asx200_tickers.csv` file; without it they will fail.
+- Airflow uses SQLite and SequentialExecutor in a single container, which is suited to local demos only.
+- The PHP landing page references other services (e.g., Metabase, ClickHouse) that are not present in `docker-compose.yaml`.

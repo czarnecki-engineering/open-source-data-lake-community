@@ -1,13 +1,18 @@
-# Contents (minio-test)
+# Contents
 
-- `docker-compose.yaml` — MinIO, init job, and single-container Airflow with local mounts.
-- `Dockerfile` — builds the custom Airflow image with `yfinance`, `pyarrow`, `pandas`.
-- `.env` — holds `AIRFLOW_UID` (useful on Linux/WSL for volume permissions).
-- `RUNBOOK.history` — actual PowerShell command history from previous runs.
-- `dags/` — Airflow DAGs for heartbeat, ASX OHLCV ingestion, and raw→conformed→curated promotion.
-- `plugins/` — placeholder mount for Airflow plugins (empty by default).
-- `logs/` — created at runtime; Airflow writes scheduler/webserver/task logs here.
-- `PROJECT_CONTEXT.md` — high-level goals, stack description, and DAG behavior.
-- `README.md` — quick start, common operations, and troubleshooting.
-- `RUNBOOK.md` — step-by-step, copy/pasteable workflow.
-- `TODO.md` — follow-up items and ideas to expand the stack.
+- `docker-compose.yaml` — Docker Compose stack for MinIO, Airflow, Jupyter, and PHP.
+- `PROJECT_CONTEXT.md` — architecture-oriented summary grounded in `docker-compose.yaml`.
+- `README.md` — practical orientation and run guidance.
+- `RUNBOOK.md` — detailed teardown/rebuild/run steps for local use.
+- `IMPLEMENTED_CAPABILITIES.md` — evidence-based capability matrix.
+- `TODO.md` — current documentation and capability gaps.
+
+- `docker/airflow/Dockerfile` — custom Airflow image with Python deps.
+- `docker/jupyter/Dockerfile` — custom Jupyter image with Python deps.
+- `dags/` — Airflow DAGs (heartbeat, ASX OHLCV ingestion, raw->conformed->curated).
+- `notebooks/` — example Jupyter notebooks.
+- `config/` — local CSV config (ASX tickers) used by DAGs.
+- `php/` — FrankenPHP landing/health pages.
+- `plugins/` — Airflow plugins mount (empty by default).
+- `logs/` — runtime logs created by Airflow.
+- `docs/` — additional documentation (if present).

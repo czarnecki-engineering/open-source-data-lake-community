@@ -1,41 +1,39 @@
-# MinIO Test Stack - Project Context
+# Project Context
 
-Small, single-node sandbox for exercising S3-style lake patterns with MinIO and a single Airflow container. The stack creates three buckets (`raw`, `conformed`, `curated`) and runs a handful of DAGs that pull OHLCV data from Yahoo Finance, land raw CSVs, convert them to Parquet, and roll daily snapshots.
+## Project Overview
+- Purpose: local, Docker Compose-based data lake sandbox using MinIO, Airflow, Jupyter, and a small PHP landing page.
+- Solution type: single-node, containerised reference stack for ingestion, light transformation, and notebook exploration.
 
-## Scope and Goals
-- Validate local MinIO + Airflow wiring without extra dependencies.
-- Demonstrate a minimal raw -> conformed -> curated flow and a heartbeat DAG.
-- Keep everything docker-compose-only; no external databases or services required.
+## Repository Scope
+- Includes: Docker Compose stack, Airflow DAGs, notebooks, and a small PHP service index.
+- Not obviously included: production database for Airflow, monitoring/alerting, CI/CD, cloud infrastructure, or hardened security controls.
 
-## Stack
-- **MinIO**: primary S3-compatible store; console on `http://localhost:9001` (user/pass `minioadmin`).
-- **MinIO init**: seeds buckets `raw`, `conformed`, `curated` via `mc`.
-- **Airflow (single container, SequentialExecutor)**: mounts `./dags`, `./logs`, `./plugins`; installs `yfinance`, `pyarrow`, `pandas` on start.
-- **Airflow user init**: creates admin user if missing.
+## Runtime Architecture
+- MinIO: S3-compatible object storage with console and API ports exposed.
+- MinIO init: one-off job that creates the `raw`, `conformed`, and `curated` buckets.
+- Airflow: single-container webserver + scheduler using `SequentialExecutor` and SQLite metadata.
+- Airflow user init: one-off job that creates an admin user if missing.
+- Jupyter: minimal notebook server with data science libraries installed.
+- PHP: FrankenPHP container serving `php/` as a local service index.
 
-## Data Model and Buckets
-- **raw/**: vendor-shaped CSV drops. Examples: `heartbeat/airflow_time_*.txt`; `tabular/market_ohlcv_daily/exchange=ASX/trade_date=YYYY-MM-DD/ticker=TICKER.csv`.
-- **conformed/**: schema-aligned Parquet with metadata (`ingest_ts`, `ingest_batch_id`, `row_hash`, `source_object_key`). Paths mirror raw.
-- **curated/**: deduped daily snapshots per trade date. Example key: `tabular/market_ohlcv_daily/exchange=ASX/trade_date=YYYY-MM-DD/snapshot.parquet`.
+High-level flow: MinIO starts first, buckets are created, Airflow runs DAGs that write to `raw` and transform into `conformed` and `curated`, and Jupyter provides interactive analysis over the resulting objects.
 
-## DAGs (what they do)
-- `raw_heartbeat_1m`: every minute write a timestamp text file into `raw/heartbeat/`.
-- `raw_market_ohlcv_daily_asx`: every 5 minutes pull recent ASX OHLCV (tickers from `ASX_TICKERS` Airflow Variable, default `BHP,CBA`) and write one CSV per (ticker, trade_date) into `raw/`.
-- `raw_to_conformed_copy`: copy new `raw/heartbeat/` objects into `conformed/` (append-only).
-- `raw_to_conformed_ohlcv_csv_to_parquet`: convert new raw OHLCV CSVs to Parquet in `conformed/`, add ingest metadata and `row_hash`, skip already converted objects.
-- `conformed_to_curated_copy`: copy new `conformed/heartbeat/` objects into `curated/`.
-- `conformed_to_curated_ohlcv_daily_snapshot`: build per-day snapshots from conformed Parquet, dedupe on (dataset_id, exchange, ticker, trade_date), keep latest `ingest_ts`, and write/refresh `snapshot.parquet` per date in `curated/`.
+## Key Folders and Files
+- `docker-compose.yaml`: primary definition of services and their runtime wiring.
+- `docker/airflow/Dockerfile`: custom Airflow image with Python deps.
+- `docker/jupyter/Dockerfile`: custom Jupyter image with Python deps.
+- `dags/`: Airflow DAGs for heartbeat and ASX OHLCV ingestion/transform.
+- `notebooks/`: example notebooks (content is not validated in this repo).
+- `php/`: simple PHP landing/health pages served by FrankenPHP.
+- `RUNBOOK.md`: step-by-step operational workflow.
 
-## Operation Model
-- All state is in Docker volumes and the local `./logs` folder. Re-running `docker compose build airflow && docker compose up -d` from a clean directory is expected.
-- Buckets are idempotently created by `minio-init`; DAGs are append-only except the curated snapshot which overwrites per-day snapshots when fresher conformed data exists.
+## Operational Model
+- Intended to run locally with Docker Compose (`docker compose build` then `docker compose up -d`).
+- Start order is enforced by dependencies: MinIO -> MinIO init -> Airflow; Jupyter and PHP are independent.
+- Airflow uses a local SQLite DB stored in a Docker volume; MinIO data is also stored in a Docker volume.
+- ASX OHLCV DAGs require a local `config/asx200_tickers.csv` file to exist and be mounted.
 
-## Environments and Credentials
-- Local only; no external cloud endpoints.
-- MinIO credentials: `minioadmin` / `minioadmin` (baked into compose and init).
-- Airflow admin: `minioadmin` / `minioadmin` (created at container start by `airflow-user-init`).
-
-## Lifecycle
-- **Bring up**: build Airflow image (installs deps), create host folders (`dags`, `logs`, `plugins`), then `docker compose up -d`.
-- **Tear down**: `docker compose down -v` removes containers and volumes; remove cached Airflow image if you want a clean rebuild.
-- **Observability**: use `docker ps --format '{{.Names}}: {{.Status}}' | sort`, Airflow UI (`http://localhost:8080`), and MinIO console (`http://localhost:9001`).
+## Evidence Notes
+- `docker-compose.yaml` is treated as the primary implementation source for capabilities.
+- Some behaviour depends on external services (Yahoo Finance) and local config files, which are not fully proven by the repo alone.
+- The PHP service index references several services not present in `docker-compose.yaml` and should not be treated as implemented here.
