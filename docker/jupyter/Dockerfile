@@ -1,5 +1,5 @@
 FROM jupyter/minimal-notebook:latest
 
 USER root
-RUN pip install --no-cache-dir pandas pyarrow matplotlib minio
+RUN pip install --no-cache-dir pandas pyarrow matplotlib minio duckdb
 USER jovyan

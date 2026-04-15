@@ -6,14 +6,6 @@ $checks = [
   ['name' => 'Jupyter',          'host' => 'jupyter',     'port' => 8888,  'path' => '/'],
   ['name' => 'MinIO S3 API',     'host' => 'minio',       'port' => 9000,  'path' => '/minio/health/ready'],
   ['name' => 'MinIO Console',    'host' => 'minio',       'port' => 9001,  'path' => '/'],
-  ['name' => 'CloudBeaver',      'host' => 'cloudbeaver', 'port' => 8978,  'path' => '/'],
-  ['name' => 'Streamlit',        'host' => 'streamlit',   'port' => 8501,  'path' => '/'],
-  ['name' => 'Metabase',         'host' => 'metabase',    'port' => 3000,  'path' => '/'],
-  ['name' => 'ClickHouse (HTTP)','host' => 'clickhouse',  'port' => 8123,  'path' => '/'],
-  ['name' => 'Ollama API',       'host' => 'ollama',      'port' => 11434, 'path' => '/api/tags'],
-
-  // TCP-only (no browser port published, but should be reachable from containers)
-  ['name' => 'Metabase DB (Postgres – TCP only)', 'host' => 'metabase_db', 'port' => 5432, 'path' => null],
 ];
 
 function tcp_check(string $host, int $port, float $timeoutSec = 0.7): array {

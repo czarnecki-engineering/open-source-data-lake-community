@@ -24,6 +24,19 @@ The canonical steps are in `RUNBOOK.md`. In brief, from the repo root:
 
 If any step fails, follow the detailed teardown/rebuild flow in `RUNBOOK.md`.
 
+# Manual Ticker Configuration (ASX Data Pipeline)
+- The ASX ingestion DAG `asx200_ohlcv_daily_to_raw` requires a local configuration file: `config/asx200_tickers.csv`.
+- This file is not provided by default and must be created manually by the operator.
+- Purpose: control the number of tickers queried from yFinance and avoid excessive or abusive API usage.
+- Behaviour:
+  - If the file is missing, the DAG will fail.
+  - This is expected and does not indicate a problem with the platform.
+- The platform is considered healthy if:
+  - services start successfully,
+  - the Airflow UI is accessible,
+  - heartbeat DAGs are running.
+- Sample starting points are available in `config/asx200_tickers_top3.csv` and `config/asx200_tickers_top100.csv`.
+
 # What to Expect When Running
 - Airflow UI: `http://localhost:8080` (user/password are both `minioadmin`).
 - MinIO Console: `http://localhost:9001` (user/password are both `minioadmin`).

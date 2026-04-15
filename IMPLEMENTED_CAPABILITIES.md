@@ -30,9 +30,9 @@ This file lists capabilities evidenced directly by the repository, with `docker-
 - Authentication/authorization beyond default service credentials.
 - Data catalog, lineage, or governance tooling.
 - HA, scaling, or production hardening features.
-- The additional services referenced by `php/index.php` (e.g., Metabase, ClickHouse, Streamlit, CloudBeaver, Ollama).
+- Additional analytics or LLM support services beyond the current Airflow, MinIO, Jupyter, and PHP stack.
 
 ## Notes for Tier Mapping
 - Safe to claim: local MinIO storage, Airflow orchestration, Jupyter notebooks, and basic raw->conformed->curated flows.
 - Phrase cautiously: ASX backfill workflows and notebook outcomes; they depend on external data and local config.
-- Do not claim: production readiness, monitoring/alerting, governance, or the extra services listed in the PHP index.
+- Do not claim: production readiness, monitoring/alerting, governance, or services beyond the current compose stack.

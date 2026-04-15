@@ -6,11 +6,11 @@ services:
     container_name: minio
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Console
+      - "${MINIO_API_PORT:-9000}:9000"   # S3 API
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"   # Console
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
     volumes:
       - minio-data:/data
     healthcheck:
@@ -29,7 +29,7 @@ services:
     entrypoint: >
       /bin/sh -c "
       echo 'Waiting for MinIO...' &&
-      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} &&
       mc mb --ignore-existing local/conformed &&
       mc mb --ignore-existing local/raw &&
       mc mb --ignore-existing local/curated &&
@@ -60,21 +60,21 @@ services:
 
       # MinIO / S3-compatible defaults for DAG code
       S3_ENDPOINT_URL: "http://minio:9000"
-      AWS_ACCESS_KEY_ID: "minioadmin"
-      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
       AWS_DEFAULT_REGION: "us-east-1"
 
       # Optional permissions helper (Linux/WSL; harmless elsewhere)
       AIRFLOW_UID: "${AIRFLOW_UID:-50000}"
 
       # Install DAG dependencies at container start (no Dockerfile)
-      PIP_ADDITIONAL_REQUIREMENTS: "yfinance pyarrow pandas"
+      PIP_ADDITIONAL_REQUIREMENTS: "${AIRFLOW_PIP_ADDITIONAL_REQUIREMENTS:-yfinance pyarrow pandas}"
 
       # Airflow Variable override via env (no UI)
-      AIRFLOW_VAR_ASX_TICKERS: "BHP,CBA,CSL,RIO,WES"
+      AIRFLOW_VAR_ASX_TICKERS: "${AIRFLOW_VAR_ASX_TICKERS:-BHP,CBA,CSL,RIO,WES}"
 
     ports:
-      - "8080:8080"
+      - "${AIRFLOW_PORT:-8080}:8080"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -85,7 +85,7 @@ services:
     command: >
       bash -lc "
       airflow db migrate &&
-      airflow users create --username minioadmin --password minioadmin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+      airflow users create --username ${AIRFLOW_ADMIN_USERNAME:-minioadmin} --password ${AIRFLOW_ADMIN_PASSWORD:-minioadmin} --firstname Admin --lastname User --role Admin --email ${AIRFLOW_ADMIN_EMAIL:-admin@example.com} || true &&
       airflow webserver & airflow scheduler
       "
     restart: unless-stopped
@@ -95,24 +95,6 @@ services:
       timeout: 5s
       retries: 30
 
-  airflow-user-init:
-    image: apache/airflow:2.10.3-custom
-    container_name: airflow-user-init
-    depends_on:
-      airflow:
-        condition: service_started
-    environment:
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
-    volumes:
-      - airflow-db:/opt/airflow
-    entrypoint: /bin/bash
-    command: >
-      -lc "
-      airflow db migrate &&
-      airflow users create --username minioadmin --password minioadmin --firstname Admin --lastname User --role Admin --email admin@example.com || true
-      "
-    restart: "no"
-
   jupyter:
     build:
       context: .
@@ -120,9 +102,9 @@ services:
     image: jupyter/minimal-notebook:custom
     container_name: jupyter
     ports:
-      - "8888:8888"
+      - "${JUPYTER_PORT:-8888}:8888"
     environment:
-      JUPYTER_TOKEN: "jupyter"
+      JUPYTER_TOKEN: "${JUPYTER_TOKEN:-jupyter}"
     volumes:
       - ./notebooks:/home/jovyan/work
     restart: "no"
@@ -131,13 +113,13 @@ services:
     image: dunglas/frankenphp:latest
     container_name: php
     ports:
-      - "8088:80"
+      - "${PHP_PORT:-8088}:80"
     volumes:
       # Put your live-edit PHP files here (e.g., ./php/index.php)
       - ./php:/app/public
     environment:
       SERVER_NAME: ":80"
-      TZ: Australia/Melbourne
+      TZ: "${TZ:-Australia/Melbourne}"
     restart: unless-stopped
 
 volumes:
