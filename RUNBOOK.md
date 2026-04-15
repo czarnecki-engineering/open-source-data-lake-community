@@ -38,6 +38,54 @@ docker ps --format '{{.Names}}: {{.Status}}' | sort
 
 ---
 
+## Canonical Local Commands
+
+Use the repository wrapper scripts as the canonical local entry points.
+
+### Start the stack
+
+```bash
+./start-compose.sh
+```
+
+What it does:
+
+* runs `docker compose build`
+* runs `docker compose up -d`
+* prints the default local access URLs
+
+Use this for normal local startup from the repository root.
+
+### Normal stop
+
+```bash
+./stop-compose.sh
+```
+
+What it does:
+
+* runs `docker compose down`
+* stops and removes the stack containers
+* preserves Docker volumes and their data
+
+Use this for routine shutdown when you want to keep local state.
+
+### Stop and remove volumes
+
+```bash
+./stop-compose.sh --volumes
+```
+
+What it does:
+
+* runs `docker compose down -v`
+* stops and removes the stack containers
+* removes the stack's Docker volumes
+
+Use this only when you want a clean local reset of persisted stack state.
+
+---
+
 ## Project Structure (Operational View)
 
 ```
@@ -55,7 +103,86 @@ docker ps --format '{{.Names}}: {{.Status}}' | sort
 └── RUNBOOK.md
 ```
 
-Stateful runtime data is held in **Docker volumes**, not in the repository.
+Stateful runtime data is split between **Docker volumes** and **bind-mounted repository folders**.
+
+---
+
+## Reset Modes
+
+Choose the stop mode based on whether you want to preserve or clear persisted state.
+
+### Normal stop
+
+```bash
+./stop-compose.sh
+```
+
+Effect:
+
+* containers stop
+* Compose removes the containers and network
+* Docker volumes are preserved
+
+Data preserved:
+
+* MinIO bucket contents in volume `minio-data`
+* Airflow metadata in volume `airflow-db`
+* repository files and bind-mounted directories such as `config/`, `dags/`, `notebooks/`, `php/`, `logs/`, and `plugins/`
+
+Typical use:
+
+* end of day shutdown
+* restart later without losing Airflow history or MinIO objects
+
+### Full reset
+
+```bash
+./stop-compose.sh --volumes
+```
+
+Effect:
+
+* containers stop
+* Compose removes the containers and network
+* Compose removes the stack Docker volumes
+
+Data deleted:
+
+* MinIO bucket contents in `minio-data`
+* Airflow metadata database in `airflow-db`
+
+Data retained:
+
+* repository files and bind-mounted directories such as `config/`, `dags/`, `notebooks/`, `php/`, `logs/`, and `plugins/`
+* local configuration files such as `config/asx200_tickers.csv`
+
+Typical use:
+
+* reset a demo environment
+* clear stale local state before reproducing a run from scratch
+
+---
+
+## Data Persistence
+
+This stack does not persist all data in the same place. Operationally, the important split is:
+
+| Location | Purpose | Removed by `./stop-compose.sh` | Removed by `./stop-compose.sh --volumes` |
+| --------------- | -------------- | -------------- | -------------- |
+| `minio-data` Docker volume | MinIO buckets and objects | No | Yes |
+| `airflow-db` Docker volume | Airflow SQLite metadata DB and scheduler state | No | Yes |
+| `./notebooks` bind mount | Notebook files in the repo working tree | No | No |
+| `./php` bind mount | PHP service files in the repo working tree | No | No |
+| `./dags` bind mount | DAG source files in the repo working tree | No | No |
+| `./config` bind mount | Local operator config including `asx200_tickers.csv` | No | No |
+| `./logs` bind mount | Airflow logs on the host | No | No |
+| `./plugins` bind mount | Airflow plugin files on the host | No | No |
+
+Practical implication:
+
+* if you want to keep MinIO objects and Airflow history, use `./stop-compose.sh`
+* if you want to clear MinIO objects and Airflow history, use `./stop-compose.sh --volumes`
+* neither stop mode deletes Git-tracked repository content
 
 ---
 
@@ -66,15 +193,16 @@ Use this sequence when preparing a clean demo, Medium article, or reproducibilit
 ### 1. Stop containers and remove volumes (critical)
 
 ```bash
-docker compose down -v
+./stop-compose.sh --volumes
 ```
 
 This removes:
 
 * Airflow metadata database
 * MinIO object storage (all buckets and objects)
-* Jupyter runtime state
 * Named and anonymous volumes attached to the stack
+
+It does **not** remove notebook files stored in the bind-mounted `./notebooks` directory.
 
 ---
 
@@ -154,25 +282,18 @@ This is the **canonical startup sequence**.
 ### 1. Build images
 
 ```bash
-docker compose build
+./start-compose.sh
 ```
 
-This builds:
+This canonical command:
 
-* the custom Airflow image
-* the custom Jupyter image with baked-in data science libraries
+* builds the custom Airflow image
+* builds the custom Jupyter image
+* starts the stack in detached mode
 
 ---
 
-### 2. Start the stack
-
-```bash
-docker compose up -d
-```
-
----
-
-### 3. Verify container health
+### 2. Verify container health
 
 ```bash
 docker ps --format '{{.Names}}: {{.Status}}' | sort
@@ -236,11 +357,11 @@ You should see containers for:
 | --------------- | -------------- |
 | Airflow         | Docker volumes |
 | MinIO           | Docker volumes |
-| Jupyter runtime | Docker volumes |
+| Jupyter notebooks | Git-tracked bind mount |
 | DAGs            | Git-tracked    |
 | Notebooks       | Git-tracked    |
 
-A full teardown (`docker compose down -v`) **destroys all data**.
+A full reset with `./stop-compose.sh --volumes` destroys data held in the stack Docker volumes, but not files that remain in bind-mounted repository folders.
 
 ---
 

@@ -12,7 +12,7 @@
 - `docker-compose.yaml`: kept the single-container `airflow` service, retained `minio`, `minio-init`, `jupyter`, and `php`, removed `airflow-user-init`, and aligned service ports and selected credentials with `.env.example`.
 - `php/index.php`: removed links and labels for unsupported services and left only Airflow, MinIO, Jupyter, and PHP.
 - `php/health.php`: removed health checks for unsupported services and kept checks for Airflow, MinIO, and Jupyter.
-- `IMPLEMENTED_CAPABILITIES.md`: removed stale references to excluded services.
+- `docs/reference/IMPLEMENTED_CAPABILITIES.md`: removed stale references to excluded services.
 - `docs/source/chat-airflow.md`: removed stale `airflow-webserver` references.
 
 ## 3. Files deleted
