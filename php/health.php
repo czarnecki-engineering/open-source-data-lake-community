@@ -52,12 +52,13 @@ $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 
 ob_start();
 ?>
-<h1>Open Data Lake – Health</h1>
+<h1>My Data Lake</h1>
+<h3>Health</h3>
 
 <p>
   <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>
   Checks run from the <strong>PHP container</strong> to other containers via service DNS.<br>
-  <a href="/index.php">Back to services</a>
+  <a href="/index.php">Services</a>
 </p>
 
 <div class="card">
@@ -106,6 +107,6 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-$page_title = 'Open Data Lake – Health';
-$page_description = 'Local container health checks from the PHP container to other services.';
+$page_title = 'My Data Lake - Health';
+$page_description = 'Local health checks for My Data Lake services.';
 require __DIR__ . '/inc/layout.php';

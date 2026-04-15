@@ -18,10 +18,12 @@ $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 
 ob_start();
 ?>
-<h1>Open Data Lake – Services</h1>
+<h1>My Data Lake</h1>
+<h3>Services</h3>
 
 <p>
-  <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code>
+  <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>
+  <a href="/health.php">Health</a>
 </p>
 
 <div class="card">
@@ -69,6 +71,6 @@ ob_start();
 </p>
 <?php
 $content = ob_get_clean();
-$page_title = 'Open Data Lake – Services';
-$page_description = 'Local service index for the Open Data Lake Docker Compose stack.';
+$page_title = 'My Data Lake - Services';
+$page_description = 'Local services page for My Data Lake.';
 require __DIR__ . '/inc/layout.php';

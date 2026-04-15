@@ -10,7 +10,7 @@ declare(strict_types=1);
  *   - $page_description (string)
  */
 
-$page_title = $page_title ?? 'Open Data Lake';
+$page_title = $page_title ?? 'My Data Lake';
 $page_description = $page_description ?? '';
 $content = $content ?? '';
 
@@ -63,8 +63,10 @@ $PUBLIC_BASE = 'https://czarneckii.com';
     </ul>
  -->
     <ul id="site-menu" class="nav-menu">
+      <li><a href="<?= $PUBLIC_BASE ?>/">Home</a></li>
+      <li><a href="<?= $PUBLIC_BASE ?>/products/">Products</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/local/">My Data Lake</a></li>
-      <li><a href="<?= $PUBLIC_BASE ?>/open-data-lake/">Open Data Lake</a></li>
+      <li><a href="<?= $PUBLIC_BASE ?>/services/">Services</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/insights/">Insights</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/contact/">Contact</a></li>
     </ul>    
