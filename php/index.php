@@ -19,11 +19,10 @@ $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 ob_start();
 ?>
 <h1>My Data Lake</h1>
-<h3>Services</h3>
+<h3>Services &nbsp; <a href="/health.php">Health</a></h3>
 
 <p>
   <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>
-  <a href="/health.php">Health</a>
 </p>
 
 <div class="card">

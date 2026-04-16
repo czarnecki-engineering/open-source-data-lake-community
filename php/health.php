@@ -53,12 +53,10 @@ $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 ob_start();
 ?>
 <h1>My Data Lake</h1>
-<h3>Health</h3>
+<h3><a href="/index.php">Services</a>  &nbsp; Health</h3>
 
 <p>
   <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>
-  Checks run from the <strong>PHP container</strong> to other containers via service DNS.<br>
-  <a href="/index.php">Services</a>
 </p>
 
 <div class="card">
