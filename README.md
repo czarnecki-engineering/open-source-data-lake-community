@@ -100,6 +100,18 @@ What is not deleted:
 
 MinIO buckets `raw`, `conformed`, and `curated` are created automatically by the init container. Airflow DAGs write and transform data inside those buckets.
 
+## DAG Execution Model
+
+- Heartbeat DAGs run automatically and provide the system health signal.
+- ASX DAGs do not run automatically and must be triggered manually via the Airflow UI.
+- Run the ASX pipeline in sequence:
+  1. `asx200_ohlcv_daily_to_raw`
+  2. `asx200_ohlcv_raw_to_conformed_parquet`
+  3. `asx200_ohlcv_conformed_to_curated_snapshot_v2`
+- The ASX backfill DAG is manual-trigger only and should be run when required.
+- Absence of ASX data does not indicate platform failure.
+- Heartbeat DAGs are the indicator of platform health.
+
 # Data Persistence
 
 Local persistence is split between Docker volumes and bind-mounted repository folders.

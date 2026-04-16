@@ -131,7 +131,7 @@ def convert_new_raw_csvs_to_parquet(**context: Context) -> None:
 with DAG(
     dag_id="asx200_ohlcv_raw_to_conformed_parquet",
     start_date=pendulum.datetime(2024, 1, 1, tz="Australia/Melbourne"),
-    schedule="*/5 * * * *",
+    schedule=None,
     catchup=False,
     max_active_runs=1,
     tags=["minio", "raw", "conformed", "ohlcv"],

@@ -173,7 +173,7 @@ def build_daily_snapshots(days_back: int = 45) -> None:
 with DAG(
     dag_id="asx200_ohlcv_conformed_to_curated_snapshot_v2",
     start_date=pendulum.datetime(2024, 1, 1, tz="Australia/Melbourne"),
-    schedule="*/10 * * * *",
+    schedule=None,
     catchup=False,
     max_active_runs=1,
     tags=["minio", "conformed", "curated", "ohlcv", "snapshot"],

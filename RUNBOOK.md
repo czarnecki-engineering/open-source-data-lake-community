@@ -328,6 +328,26 @@ You should see containers for:
 
 ---
 
+## DAG Execution Model
+
+* Heartbeat DAGs run automatically and provide the platform health signal.
+* All ASX DAGs are manual-trigger only in the Airflow UI.
+* Scheduling for ASX DAGs has been intentionally disabled.
+* ASX DAGs are independent and not chained.
+* The ASX backfill DAG must also be run manually when required.
+* Absence of ASX data does not indicate platform failure.
+* Heartbeat DAGs are the indicator of platform health.
+
+To run the ASX pipeline:
+
+* trigger `asx200_ohlcv_daily_to_raw`
+* wait for completion
+* trigger `asx200_ohlcv_raw_to_conformed_parquet`
+* wait for completion
+* trigger `asx200_ohlcv_conformed_to_curated_snapshot_v2`
+
+---
+
 ## Service Access
 
 ### Airflow
