@@ -174,7 +174,7 @@ def fetch_and_write_raw_csvs(rolling_trading_days: int = 30) -> None:
 with DAG(
     dag_id="asx200_ohlcv_daily_to_raw",
     start_date=pendulum.datetime(2024, 1, 1, tz="Australia/Melbourne"),
-    schedule="*/5 * * * *",  # adjust as desired; 5-min is safer than 1-min for Yahoo
+    schedule=None,
     catchup=False,
     max_active_runs=1,
     tags=["minio", "raw", "ohlcv", "asx"],

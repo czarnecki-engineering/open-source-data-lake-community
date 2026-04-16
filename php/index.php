@@ -7,28 +7,23 @@ $services = [
   ['Service' => 'Jupyter',        'URL' => "http://{$host}:8888/",  'Notes' => 'Notebook UI'],
   ['Service' => 'MinIO Console',  'URL' => "http://{$host}:9001/",  'Notes' => 'Admin console'],
   ['Service' => 'MinIO S3 API',   'URL' => "http://{$host}:9000/",  'Notes' => 'S3 endpoint'],
-  ['Service' => 'CloudBeaver',    'URL' => "http://{$host}:8978/",  'Notes' => 'DB admin UI'],
-  ['Service' => 'Streamlit',      'URL' => "http://{$host}:8501/",  'Notes' => 'App UI'],
-  ['Service' => 'Metabase',       'URL' => "http://{$host}:3000/",  'Notes' => 'Dashboards'],
-  ['Service' => 'ClickHouse (HTTP)', 'URL' => "http://{$host}:8123/", 'Notes' => 'HTTP interface'],
-  ['Service' => 'ClickHouse (native)', 'URL' => "tcp://{$host}:19000", 'Notes' => 'Native protocol (host 19000 -> container 9000)'],
-  ['Service' => 'Ollama API',     'URL' => "http://{$host}:11434/", 'Notes' => 'API root'],
   ['Service' => 'PHP (this)',     'URL' => "http://{$host}:8088/",  'Notes' => 'FrankenPHP'],
 ];
 
 $utilities = [
   ['Page' => 'Container health checks', 'URL' => "/health.php", 'Notes' => 'From PHP container to other containers'],
-  ['Page' => 'Ollama utilities',        'URL' => "/ollama.php", 'Notes' => 'Basic API checks and model listing'],
 ];
 
 $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 
 ob_start();
 ?>
-<h1>Open Data Lake – Services</h1>
+<h1>My Data Lake</h1>
+<h3>Services</h3>
 
 <p>
-  <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code>
+  <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>
+  <a href="/health.php">Health</a>
 </p>
 
 <div class="card">
@@ -76,6 +71,6 @@ ob_start();
 </p>
 <?php
 $content = ob_get_clean();
-$page_title = 'Open Data Lake – Services';
-$page_description = 'Local service index for the Open Data Lake Docker Compose stack.';
+$page_title = 'My Data Lake - Services';
+$page_description = 'Local services page for My Data Lake.';
 require __DIR__ . '/inc/layout.php';

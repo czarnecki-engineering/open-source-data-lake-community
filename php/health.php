@@ -6,14 +6,6 @@ $checks = [
   ['name' => 'Jupyter',          'host' => 'jupyter',     'port' => 8888,  'path' => '/'],
   ['name' => 'MinIO S3 API',     'host' => 'minio',       'port' => 9000,  'path' => '/minio/health/ready'],
   ['name' => 'MinIO Console',    'host' => 'minio',       'port' => 9001,  'path' => '/'],
-  ['name' => 'CloudBeaver',      'host' => 'cloudbeaver', 'port' => 8978,  'path' => '/'],
-  ['name' => 'Streamlit',        'host' => 'streamlit',   'port' => 8501,  'path' => '/'],
-  ['name' => 'Metabase',         'host' => 'metabase',    'port' => 3000,  'path' => '/'],
-  ['name' => 'ClickHouse (HTTP)','host' => 'clickhouse',  'port' => 8123,  'path' => '/'],
-  ['name' => 'Ollama API',       'host' => 'ollama',      'port' => 11434, 'path' => '/api/tags'],
-
-  // TCP-only (no browser port published, but should be reachable from containers)
-  ['name' => 'Metabase DB (Postgres – TCP only)', 'host' => 'metabase_db', 'port' => 5432, 'path' => null],
 ];
 
 function tcp_check(string $host, int $port, float $timeoutSec = 0.7): array {
@@ -60,12 +52,13 @@ $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 
 ob_start();
 ?>
-<h1>Open Data Lake – Health</h1>
+<h1>My Data Lake</h1>
+<h3>Health</h3>
 
 <p>
   <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>
   Checks run from the <strong>PHP container</strong> to other containers via service DNS.<br>
-  <a href="/index.php">Back to services</a>
+  <a href="/index.php">Services</a>
 </p>
 
 <div class="card">
@@ -114,6 +107,6 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-$page_title = 'Open Data Lake – Health';
-$page_description = 'Local container health checks from the PHP container to other services.';
+$page_title = 'My Data Lake - Health';
+$page_description = 'Local health checks for My Data Lake services.';
 require __DIR__ . '/inc/layout.php';

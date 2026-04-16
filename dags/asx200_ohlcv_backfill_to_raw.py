@@ -338,7 +338,7 @@ def fetch_and_write_raw_csvs() -> None:
 with DAG(
     dag_id="asx200_ohlcv_backfill_to_raw",
     start_date=pendulum.datetime(2024, 1, 1, tz="Australia/Melbourne"),
-    schedule="@daily",  # temporarily scheduled; disable once complete
+    schedule=None,
     catchup=False,
     max_active_runs=1,
     tags=["minio", "raw", "ohlcv", "asx", "backfill", "yfinance"],

@@ -1,7 +1,7 @@
 # TODO
 
 ## Documentation Gaps
-- Align `CONTENTS.md` with the current repo structure (it references files that do not exist in this repo).
+- Align `../reference/CONTENTS.md` with the current repo structure (it references files that do not exist in this repo).
 - Document the PHP service index and its port in `RUNBOOK.md`.
 - Clarify the required `config/asx200_tickers.csv` file in top-level docs (not only in `config/README.md`).
 - Document expected DAG schedules and dependencies in `dags/README.md`.

@@ -59,9 +59,9 @@ services:
         --email admin@example.com
       "
 
-  airflow-webserver:
+  airflow:
     image: apache/airflow:2.10.3
-    container_name: airflow-webserver
+    container_name: airflow
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,7 +133,7 @@ View container status:
 docker ps --format '{{.Names}}: {{.Status}}' | sort
 Tail logs:
 
-docker compose logs -f airflow-webserver
+docker compose logs -f airflow
 docker compose logs -f airflow-scheduler
 Stop (keep DB/data):
 
