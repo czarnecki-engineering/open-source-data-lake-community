@@ -56,6 +56,16 @@ What it does:
 
 Use this for normal local startup from the repository root.
 
+### Environment Variables
+
+Docker Compose reads `.env` from the repository root if it is present. `.env.example` is a template only, so create `.env` explicitly if you want local overrides:
+
+```bash
+cp .env.example .env
+```
+
+`./start-compose.sh` does not create `.env`, and any overrides must be defined before you run the start script.
+
 ### Normal stop
 
 ```bash

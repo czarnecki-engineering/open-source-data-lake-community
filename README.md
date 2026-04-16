@@ -19,7 +19,13 @@ Provides a local Docker Compose stack that combines MinIO object storage, Apache
 The canonical local workflow is in `RUNBOOK.md`. In brief, from the repo root:
 
 1. Create `config/asx200_tickers.csv` (see `config/asx200_tickers_top3.csv` or `config/asx200_tickers_top100.csv` as examples).
-2. Start the stack:
+2. If you want to customise environment-based settings, create a local `.env` file from the template:
+
+```bash
+cp .env.example .env
+```
+
+3. Start the stack:
 
 ```bash
 ./start-compose.sh
@@ -44,6 +50,27 @@ To stop the stack and remove persisted Compose data:
 This performs a full local reset of the stack's Docker volumes. Use it when you want to clear Airflow state and MinIO data.
 
 If any step fails, follow the detailed operational guidance in `RUNBOOK.md`.
+
+### Environment Configuration
+
+Docker Compose automatically reads `.env` from the repository root if the file is present.
+
+`.env.example` is a template only. It is not loaded automatically and is provided as a starting point for a local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+If `.env` is absent, Docker Compose falls back to the defaults defined in `docker-compose.yaml`. The stack is designed to work out-of-the-box without a `.env` file.
+
+Configuration precedence:
+
+1. `.env` file (if present)
+2. Shell environment variables
+3. Defaults in `docker-compose.yaml`
+4. Hardcoded values in `docker-compose.yaml`
+
+Some settings, such as the Airflow executor, S3 endpoint, and internal service configuration, are not exposed via `.env` and require editing `docker-compose.yaml`.
 
 # Reset Modes
 
