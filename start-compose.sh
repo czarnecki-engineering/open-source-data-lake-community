@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat <<'EOF' >&2
+Usage:
+  ./start-compose.sh [--overlay <compose-file>]
+
+Options:
+  --overlay <compose-file>   Optional overlay compose file.
+EOF
+}
+
+compose_cmd=(docker compose -f docker-compose.yaml)
+overlay_file=""
+
+if [[ "${#}" -gt 0 ]]; then
+  if [[ "${#}" -ne 2 || "${1}" != "--overlay" ]]; then
+    usage
+    exit 2
+  fi
+  overlay_file="${2}"
+fi
+
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 else
@@ -15,6 +36,14 @@ fi
 if [[ ! -f "docker-compose.yaml" ]]; then
   echo "Error: docker-compose.yaml not found in current directory. Run from the repo root." >&2
   exit 1
+fi
+
+if [[ -n "${overlay_file}" ]]; then
+  if [[ ! -f "${overlay_file}" ]]; then
+    echo "Error: overlay compose file not found: ${overlay_file}" >&2
+    exit 1
+  fi
+  compose_cmd+=(-f "${overlay_file}")
 fi
 
 if [ ! -f ".env" ]; then
@@ -37,11 +66,11 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "Building images (docker compose build)..."
-docker compose build
+echo "Building images (${compose_cmd[*]} build)..."
+"${compose_cmd[@]}" build
 
-echo "Starting stack (docker compose up -d)..."
-docker compose up -d
+echo "Starting stack (${compose_cmd[*]} up -d)..."
+"${compose_cmd[@]}" up -d
 
 echo "Waiting briefly for services to initialize..."
 sleep 5
