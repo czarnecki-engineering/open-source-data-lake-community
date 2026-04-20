@@ -12,6 +12,7 @@ $services = [
 
 $utilities = [
   ['Page' => 'Container health checks', 'URL' => "/health.php", 'Notes' => 'From PHP container to other containers'],
+  ['Page' => 'Solutions', 'URL' => "/solutions.php", 'Notes' => 'Installed solution pages'],
 ];
 
 $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
@@ -19,7 +20,7 @@ $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 ob_start();
 ?>
 <h1>My Data Lake</h1>
-<h3>Services &nbsp; <a href="/health.php">Health</a></h3>
+<h3>Services &nbsp; <a href="/health.php">Health</a> &nbsp; <a href="/solutions.php">Solutions</a></h3>
 
 <p>
   <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>

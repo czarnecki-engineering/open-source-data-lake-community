@@ -53,7 +53,7 @@ $now = (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM);
 ob_start();
 ?>
 <h1>My Data Lake</h1>
-<h3><a href="/index.php">Services</a>  &nbsp; Health</h3>
+<h3><a href="/index.php">Services</a>  &nbsp; Health &nbsp; <a href="/solutions.php">Solutions</a></h3>
 
 <p>
   <strong>Time:</strong> <code><?= htmlspecialchars($now) ?></code><br>
