@@ -79,7 +79,9 @@ services:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
+      - ./scripts:/opt/airflow/scripts
       - ./config:/opt/airflow/config:ro
+      - ./data:/opt/airflow/data
       - airflow-db:/opt/airflow
 
     command: >
@@ -107,6 +109,8 @@ services:
       JUPYTER_TOKEN: "${JUPYTER_TOKEN:-jupyter}"
     volumes:
       - ./notebooks:/home/jovyan/work
+      - ./config:/home/jovyan/config:ro
+      - ./data:/home/jovyan/data
     restart: "no"
 
   php:
@@ -117,6 +121,7 @@ services:
     volumes:
       # Put your live-edit PHP files here (e.g., ./php/index.php)
       - ./php:/app/public
+      - ./data:/app/data:ro
     environment:
       SERVER_NAME: ":80"
       TZ: "${TZ:-Australia/Melbourne}"
