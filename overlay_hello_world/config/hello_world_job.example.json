@@ -1,0 +1,11 @@
+{
+  "job_name": "hello_world",
+  "run_date": "2026-04-24",
+  "raw_bucket": "raw",
+  "raw_key": "hello_world/raw/records.json",
+  "conformed_bucket": "conformed",
+  "conformed_key": "hello_world/conformed/records.json",
+  "curated_bucket": "curated",
+  "curated_key": "hello_world/curated/latest/summary.json",
+  "enabled_solution_tag": "hello-world"
+}

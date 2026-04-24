@@ -4,23 +4,38 @@ set -euo pipefail
 usage() {
   cat <<'EOF' >&2
 Usage:
-  ./start-compose.sh [--overlay <compose-file>]
+  ./start-compose.sh [--overlay <compose-file-or-name>]...
 
 Options:
-  --overlay <compose-file>   Optional overlay compose file.
+  --overlay <compose-file-or-name>   Optional overlay compose file path or overlay name.
+                                      May be repeated. If the value is not an
+                                      existing file, the wrapper resolves it via:
+                                      1. overlay_<name>/dev-docker-compose.overlay-<slug>.yaml
+                                      2. overlay_<name>/docker-compose.overlay-<slug>.yaml
+                                      3. overlay_<name>/overlay_<name>/docker-compose.overlay-<slug>.yaml
 EOF
 }
 
 compose_cmd=(docker compose -f docker-compose.yaml)
-overlay_file=""
+overlay_args=()
+overlay_files=()
 
-if [[ "${#}" -gt 0 ]]; then
-  if [[ "${#}" -ne 2 || "${1}" != "--overlay" ]]; then
-    usage
-    exit 2
-  fi
-  overlay_file="${2}"
-fi
+while [[ "${#}" -gt 0 ]]; do
+  case "${1}" in
+    --overlay)
+      if [[ "${#}" -lt 2 ]]; then
+        usage
+        exit 2
+      fi
+      overlay_args+=("${2}")
+      shift 2
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+done
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -38,12 +53,66 @@ if [[ ! -f "docker-compose.yaml" ]]; then
   exit 1
 fi
 
-if [[ -n "${overlay_file}" ]]; then
-  if [[ ! -f "${overlay_file}" ]]; then
-    echo "Error: overlay compose file not found: ${overlay_file}" >&2
-    exit 1
+resolve_overlay_file() {
+  local overlay_arg="${1}"
+  local overlay_slug
+  local -a candidates=()
+
+  if [[ -f "${overlay_arg}" ]]; then
+    printf '%s\n' "${overlay_arg}"
+    return 0
   fi
-  compose_cmd+=(-f "${overlay_file}")
+
+  overlay_slug="${overlay_arg//_/-}"
+  candidates+=("overlay_${overlay_arg}/dev-docker-compose.overlay-${overlay_slug}.yaml")
+  candidates+=("overlay_${overlay_arg}/docker-compose.overlay-${overlay_slug}.yaml")
+  candidates+=("overlay_${overlay_arg}/overlay_${overlay_arg}/docker-compose.overlay-${overlay_slug}.yaml")
+
+  for candidate in "${candidates[@]}"; do
+    if [[ -f "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+overlay_already_selected() {
+  local candidate="${1}"
+  local existing
+
+  for existing in "${overlay_files[@]:-}"; do
+    if [[ "${existing}" == "${candidate}" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+if (( ${#overlay_args[@]:-0} > 0 )); then
+  for overlay_arg in "${overlay_args[@]}"; do
+    if ! overlay_file="$(resolve_overlay_file "${overlay_arg}")"; then
+      echo "Error: overlay compose file not found: ${overlay_arg}" >&2
+      exit 1
+    fi
+
+    if overlay_already_selected "${overlay_file}"; then
+      echo "Error: duplicate overlay compose file requested: ${overlay_file}" >&2
+      exit 1
+    fi
+
+    overlay_files+=("${overlay_file}")
+    compose_cmd+=(-f "${overlay_file}")
+  done
+fi
+
+if (( ${#overlay_files[@]:-0} > 0 )); then
+  printf 'Resolved overlays (merge order):\n' >&2
+  for overlay_file in "${overlay_files[@]}"; do
+    printf -- '- %s\n' "${overlay_file}" >&2
+  done
 fi
 
 if [ ! -f ".env" ]; then

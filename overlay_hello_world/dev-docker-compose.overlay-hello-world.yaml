@@ -1,0 +1,38 @@
+services:
+  airflow:
+    build:
+      context: .
+      dockerfile: ./overlay_hello_world/overlay_hello_world/docker/airflow/Dockerfile
+    image: apache/airflow:2.10.3-hello-world
+    environment:
+      HELLO_WORLD_CONFIG_DIR: /opt/airflow/config
+      HELLO_WORLD_LOCAL_DATA_DIR: /opt/airflow/data
+      HELLO_WORLD_SAMPLE_DIR: /opt/airflow/data/sample/hello_world
+    volumes:
+      - ./overlay_hello_world/dags:/opt/airflow/dags
+      - ./overlay_hello_world/scripts:/opt/airflow/scripts
+      - ./overlay_hello_world/config:/opt/airflow/config:ro
+      - ./overlay_hello_world/data/sample/hello_world:/opt/airflow/data/sample/hello_world:ro
+    labels:
+      org.opencontainers.image.title: "hello-world-overlay"
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: ./overlay_hello_world/overlay_hello_world/docker/jupyter/Dockerfile
+    image: jupyter/minimal-notebook:hello-world
+    environment:
+      HELLO_WORLD_CONFIG_DIR: /home/jovyan/config
+      HELLO_WORLD_LOCAL_DATA_DIR: /home/jovyan/data
+      HELLO_WORLD_SAMPLE_DIR: /home/jovyan/data/sample/hello_world
+    volumes:
+      - ./overlay_hello_world/notebooks:/home/jovyan/work
+      - ./overlay_hello_world/scripts:/home/jovyan/scripts
+      - ./overlay_hello_world/config:/home/jovyan/config:ro
+      - ./overlay_hello_world/data/sample/hello_world:/home/jovyan/data/sample/hello_world:ro
+
+  php:
+    environment:
+      ENABLED_SOLUTION_TAGS: "${ENABLED_SOLUTION_TAGS:-hello-world}"
+    volumes:
+      - ./overlay_hello_world/php/solutions:/app/public/solutions
