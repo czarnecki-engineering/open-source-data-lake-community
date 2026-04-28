@@ -1,0 +1,8 @@
+services:
+  airflow:
+    volumes:
+      - ./overlay_heartbeat_v2/dags:/opt/airflow/dags/overlay_heartbeat_v2:ro
+
+  jupyter:
+    volumes:
+      - ./overlay_heartbeat_v2/notebooks:/home/jovyan/work/overlay_heartbeat_v2:ro
