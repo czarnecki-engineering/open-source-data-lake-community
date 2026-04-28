@@ -18,3 +18,33 @@ Use this sequence when implementing a new overlay against the supported stack.
    - source-tree dev compose
    - packaged runtime compose
 11. Before publishing, re-check `CHECKLIST.md`, `INSTALL_RULES.md`, and `ARCHIVE_RULES.md`.
+
+## Documentation Standard
+
+Packaged runtime docs should be predictable across overlays.
+
+Every overlay should include:
+
+- `overlay_<name>/README.md`
+- `overlay_<name>/RUNBOOK.md`
+
+Those docs should clearly cover:
+
+1. what the overlay does
+2. how to run it in source-tree dev mode
+3. how to build the archive
+4. how to install the overlay into a compatible repo root
+5. how to start the installed overlay with the base stack
+6. how to stop the installed overlay
+7. how to validate the installed result
+
+For file-only overlays:
+
+- the dev-mode section may explicitly say that no separate dev wrapper exists
+- the installed-runtime section should explicitly say to use the normal base root wrappers
+
+For compose overlays:
+
+- the docs should name the exact `dev-start-compose.sh` and `dev-stop-compose.sh` commands
+- the docs should name the exact packaged `start-compose.sh` and `stop-compose.sh` commands
+- if the packaged wrapper delegates to the root wrapper, say so directly

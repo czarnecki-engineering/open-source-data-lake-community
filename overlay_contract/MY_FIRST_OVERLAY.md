@@ -44,6 +44,13 @@ After that, start the normal base stack:
 
 No `--overlay` argument is needed because the base PHP container already mounts `./php`.
 
+Even the smallest overlay should document the standard operator questions in packaged docs:
+
+- dev mode: for file-only overlays, explicitly say there is no separate dev wrapper
+- archive build: show the exact archive command
+- install: show the exact additive unzip command
+- installed runtime: show the exact base start command
+
 ## When You Need Compose YAML
 
 Add `docker-compose.overlay-<name>.yaml` only if the overlay must change service definitions, for example:
@@ -74,6 +81,7 @@ The merge order is left to right. Later overlays win where Docker Compose says l
 2. Check whether the base mounts already expose those files to the service that needs them.
 3. If yes, stop there. Do not create compose YAML.
 4. Add packaged docs under `overlay_<name>/`.
+   Those docs should answer dev mode, archive build, install, and installed-runtime startup explicitly.
 5. Archive only the additive payload plus the packaged docs folder.
 6. Install into a compatible repo root and test with plain `./start-compose.sh`.
 7. Only add compose YAML later if the overlay truly needs service changes.

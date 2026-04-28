@@ -10,6 +10,17 @@ Use this contract when:
 
 The reference implementation for this contract lives in `overlay_hello_world/`.
 
+Every publishable overlay should ship packaged runtime docs under `overlay_<name>/README.md` and `overlay_<name>/RUNBOOK.md`.
+
+At minimum, those docs should make these operator paths explicit:
+
+- source-tree dev mode
+- archive build
+- additive install into a compatible repo root
+- installed-runtime startup against the base stack
+
+If an overlay intentionally does not support one of those paths, the docs should say so explicitly rather than leaving the behavior implied.
+
 Start with:
 
 - `MY_FIRST_OVERLAY.md` for the simplest file-only path

@@ -37,6 +37,8 @@ Interpretation:
 - the outer folder is the source-tree and archive build root
 - the nested `overlay_<name>/` folder is the packaged runtime folder
 - dev helpers stay outside the nested packaged runtime folder
+- packaged `README.md` and `RUNBOOK.md` are part of the overlay contract, not optional decoration
+- those packaged docs should describe dev mode, archive build, install, and installed-runtime execution paths
 
 Minimal file-only layout:
 
@@ -55,3 +57,4 @@ Interpretation:
 
 - file-only overlays may omit dev wrappers, packaged wrappers, `.env.example`, Dockerfiles, and compose YAML
 - file-only overlays run through the base root wrappers with no `--overlay` argument
+- file-only overlays should still document that explicitly in packaged `README.md` and `RUNBOOK.md`

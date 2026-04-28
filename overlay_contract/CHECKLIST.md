@@ -12,3 +12,4 @@
 - File-only overlays validate through additive install plus plain base startup.
 - Compose overlays validate through both dev and packaged compose renders.
 - Generated runtime outputs are not committed.
+- Packaged `README.md` and `RUNBOOK.md` explicitly cover dev mode, archive build, install, and installed-runtime execution.
