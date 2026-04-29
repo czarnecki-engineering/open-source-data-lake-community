@@ -123,7 +123,7 @@ Overlay-specific runtime configuration (e.g. environment variables) may be defin
 
 This YAML:
 - must not modify base runtime definitions
-- is limited to environment variables and service-specific overrides
+- must be limited to environment variables and explicit service-specific overrides against services that exist in the base runtime
 - is optional
 
 No additional overlay manifest format is defined.
@@ -133,16 +133,18 @@ No additional overlay manifest format is defined.
 
 7.1 Service Model
 
-All environments must implement:
+All environments must implement the explicit Airflow runtime services:
 
 airflow-webserver
 airflow-scheduler
 
+The logical `airflow` service does not exist and must not be referenced by overlays or overlay runtime configuration.
+
 
 7.2 Metadata Database
 
-- The Airflow metadata database must be PostgreSQL
-- SQLite is not part of the Supported runtime
+- The Supported runtime must use PostgreSQL for the Airflow metadata database
+- SQLite is not permitted in the Supported runtime
 
 
 7.3 Overlay Integration
@@ -153,7 +155,9 @@ dags/      DAG definitions
 scripts/   shared code imported by DAGs
 config/    configuration used by DAGs
 
-No logical airflow service abstraction is part of the contract.
+Overlays that apply runtime configuration must target explicit base-runtime services such as `airflow-webserver` and `airflow-scheduler`.
+
+Overlays must not introduce or depend on service abstractions that are not present in the base runtime.
 
 
 8. Configuration and State
