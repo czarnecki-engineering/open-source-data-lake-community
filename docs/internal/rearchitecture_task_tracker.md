@@ -344,3 +344,39 @@
   - `.env` was not committed or staged.
 - recommended next task:
   - Task 16 — Correct Community base runtime credential dependency wiring
+
+## Task 16 — Correct Community base runtime credential dependency wiring
+
+- task id: 16
+- task title: Correct Community base runtime credential dependency wiring
+- repository: Community
+- task type: implementation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- files changed:
+  - docker-compose.yaml
+  - docs/internal/rearchitecture_task_tracker.md
+- summary of changes:
+  - Added explicit `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD` environment wiring to `minio-init` so the bootstrap client receives the same env-derived credential pair as the `minio` service it depends on.
+  - Switched the `minio-init` alias command to consume runtime environment variables inside the container rather than Compose-time interpolation, preserving a single credential source of truth for the base MinIO dependency path.
+  - Kept the existing split Airflow service topology, PostgreSQL variable names, overlay semantics, and Task 15 startup env gate unchanged.
+- validation performed:
+  - Confirmed branch `feature/rearchitecture-runtime-overlay-contract` before implementation.
+  - Read Task 13 report, Task 14 remediation plan, tracker, architecture contract, `docker-compose.yaml`, `start-compose.sh`, and `.env.example`.
+  - Ran `bash -n start-compose.sh`.
+  - Ran `docker compose --env-file /tmp/task16.env config` using a complete env file derived from `.env.example` with Community-only alternate host ports.
+  - Confirmed the rendered Compose config resolved without missing-variable warnings and retained `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, and `airflow-scheduler`, with no logical service named exactly `airflow`.
+  - Cleared only the Community compose project and Community-scoped volumes with `docker compose --env-file /tmp/task16.env down -v`.
+  - Started the Community base runtime with `docker compose --env-file /tmp/task16.env up -d --build`.
+  - Verified `docker compose --env-file /tmp/task16.env ps -a` showed `airflow-postgres` healthy, `airflow-user-init` exited `0`, `airflow-webserver` healthy, `airflow-scheduler` running, `minio` healthy, and `minio-init` exited `0`.
+  - Reviewed Community-only logs and confirmed PostgreSQL init completed successfully, Airflow metadata migration/user creation completed successfully, and `minio-init` authenticated successfully and provisioned `raw`, `conformed`, and `curated`.
+  - Stopped only the Community compose project with `docker compose --env-file /tmp/task16.env down`.
+- validation result:
+  - pass
+- confirmations:
+  - Supported runtime was not modified.
+  - No overlay files were modified.
+  - No documentation files were modified outside this task tracker update.
+  - `.env` was not committed or staged.
+- recommended next task:
+  - Task 17 — Remove Community overlay MinIO credential fallbacks
