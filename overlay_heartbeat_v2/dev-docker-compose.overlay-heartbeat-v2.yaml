@@ -1,5 +1,9 @@
 services:
-  airflow:
+  airflow-webserver:
+    volumes:
+      - ./overlay_heartbeat_v2/dags:/opt/airflow/dags/overlay_heartbeat_v2:ro
+
+  airflow-scheduler:
     volumes:
       - ./overlay_heartbeat_v2/dags:/opt/airflow/dags/overlay_heartbeat_v2:ro
 

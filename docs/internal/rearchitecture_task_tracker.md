@@ -153,3 +153,52 @@
   - Host-side `curl` to the remapped Airflow port was inconsistent in this sandbox, so the authoritative health verification used the container-local Airflow `/health` endpoint plus Compose health state.
 - recommended next task:
   - Task 11 — Implement Community Stage 2 overlay alignment so all overlays target `airflow-webserver` and `airflow-scheduler` instead of legacy logical `airflow`.
+
+## Task 11 — Implement Community Stage 2 overlay model alignment
+
+- task id: 11
+- task title: Implement Community Stage 2 overlay model alignment
+- repository: Community
+- task type: implementation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- summary of changes:
+  - Removed `services.airflow` from every Community overlay Compose file that defined it.
+  - Duplicated Airflow-specific overlay configuration onto `airflow-webserver` and `airflow-scheduler` for all dev overlays and packaged overlay Compose files.
+  - Added a minimal `start-compose.sh` validation guard so overlays that still define logical `airflow` fail immediately with `logical service 'airflow' is not supported`.
+  - Preserved all non-Airflow overlay services and left file-only overlays unchanged.
+- validation result:
+  - pass
+- validation performed:
+  - Confirmed clean starting state with empty `git status --short`.
+  - Enumerated overlay Compose files before modification:
+    - `overlay_hello_world/dev-docker-compose.overlay-hello-world.yaml`
+    - `overlay_hello_world/overlay_hello_world/docker-compose.overlay-hello-world.yaml`
+    - `overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml`
+    - `overlay_kaggle_ingestion/overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml`
+    - `overlay_asx_historic_csv/dev-docker-compose.overlay-asx-historic-csv.yaml`
+    - `overlay_asx_historic_csv/overlay_asx_historic_csv/docker-compose.overlay-asx-historic-csv.yaml`
+    - `overlay_heartbeat_v2/dev-docker-compose.overlay-heartbeat-v2.yaml`
+  - Confirmed all seven overlay Compose files originally targeted logical `airflow`.
+  - Verified after migration that `grep -R "services:.*airflow" .` returns no matches and remaining `airflow:` hits under overlay directories are non-service references only.
+  - Restarted the base runtime with shell-injected alternate host ports because default Community ports were already allocated by another stack in the validation environment.
+  - Validated base runtime health with `docker compose ps -a` and `docker compose exec -T airflow-webserver curl -fsS http://localhost:8080/health`.
+  - Runtime-validated the four executable Community overlays against the Stage 1 runtime:
+    - `hello_world`
+    - `overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml`
+    - `overlay_asx_historic_csv/dev-docker-compose.overlay-asx-historic-csv.yaml`
+    - `overlay_heartbeat_v2/dev-docker-compose.overlay-heartbeat-v2.yaml`
+  - Confirmed overlay-specific Airflow mounts and environment wiring are visible in both `airflow-webserver` and `airflow-scheduler` for the migrated overlays.
+  - Verified packaged overlay Compose semantics with `docker compose ... config --services` for:
+    - `overlay_hello_world/overlay_hello_world/docker-compose.overlay-hello-world.yaml`
+    - `overlay_kaggle_ingestion/overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml`
+    - `overlay_asx_historic_csv/overlay_asx_historic_csv/docker-compose.overlay-asx-historic-csv.yaml`
+  - Executed the required negative test with a temporary overlay defining `services.airflow`; `./start-compose.sh --overlay /tmp/task11-invalid-overlay.yaml` failed with the expected message `logical service 'airflow' is not supported`.
+- number of overlays tested:
+  - 4 runtime overlay startups
+  - 3 packaged overlay Compose service-resolution checks
+- failures encountered:
+  - No migrated overlay failed after the Stage 2 mapping changes.
+  - `./start-compose.sh --overlay kaggle_ingestion` does not resolve because the existing wrapper lookup expects a slug derived from the overlay argument, while the overlay file is named `docker-compose.overlay-kaggle.yaml`; validation used the explicit overlay file path instead. This was recorded but left unchanged because Task 11 scope only permits `start-compose.sh` changes required for legacy logical-airflow failure enforcement.
+- recommended next task:
+  - Task 12 — implement Community Stage 3 environment and secrets cleanup

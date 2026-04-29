@@ -1,5 +1,13 @@
 services:
-  airflow:
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: overlay_asx_historic_csv/overlay_asx_historic_csv/docker/airflow/Dockerfile
+    volumes:
+      - ./scripts:/opt/airflow/scripts
+      - ./data:/opt/airflow/data
+
+  airflow-scheduler:
     build:
       context: .
       dockerfile: overlay_asx_historic_csv/overlay_asx_historic_csv/docker/airflow/Dockerfile

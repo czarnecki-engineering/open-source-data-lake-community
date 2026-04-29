@@ -1,5 +1,18 @@
 services:
-  airflow:
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: overlay_kaggle_ingestion/overlay_kaggle_ingestion/docker/airflow/Dockerfile
+    environment:
+      KAGGLE_API_TOKEN: "${KAGGLE_API_TOKEN:-}"
+      KAGGLE_USERNAME: "${KAGGLE_USERNAME:-}"
+      KAGGLE_KEY: "${KAGGLE_KEY:-}"
+      KAGGLE_CONFIG_DIR: "/tmp/kaggle"
+    volumes:
+      - ./scripts:/opt/airflow/scripts
+      - ./data:/opt/airflow/data
+
+  airflow-scheduler:
     build:
       context: .
       dockerfile: overlay_kaggle_ingestion/overlay_kaggle_ingestion/docker/airflow/Dockerfile

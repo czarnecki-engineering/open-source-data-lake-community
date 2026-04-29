@@ -91,6 +91,15 @@ overlay_already_selected() {
   return 1
 }
 
+validate_overlay_file() {
+  local overlay_file="${1}"
+
+  if grep -Eq '^[[:space:]]{2}airflow:[[:space:]]*$' "${overlay_file}"; then
+    echo "Error: logical service 'airflow' is not supported: ${overlay_file}" >&2
+    exit 1
+  fi
+}
+
 if (( ${#overlay_args[@]:-0} > 0 )); then
   for overlay_arg in "${overlay_args[@]}"; do
     if ! overlay_file="$(resolve_overlay_file "${overlay_arg}")"; then
@@ -103,6 +112,7 @@ if (( ${#overlay_args[@]:-0} > 0 )); then
       exit 1
     fi
 
+    validate_overlay_file "${overlay_file}"
     overlay_files+=("${overlay_file}")
     compose_cmd+=(-f "${overlay_file}")
   done
