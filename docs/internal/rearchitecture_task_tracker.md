@@ -491,3 +491,38 @@
   - Supported runtime was not modified
 - recommended next task:
   - Task 18 — Align Community documentation with runtime
+
+#### Task 19 Result
+- task id: 19
+- task title: Re-run Community Stage 4 validation
+- repository: Community
+- task type: validation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- files changed:
+  - `docs/internal/task_19_community_validation_report.md`
+  - `docs/internal/rearchitecture_task_tracker.md`
+- validation performed:
+  - Confirmed branch `feature/rearchitecture-runtime-overlay-contract`.
+  - Ran `docker info` and confirmed the Docker daemon was reachable.
+  - Prepared scoped Community cleanup with `docker compose --env-file /tmp/task19.env down --volumes`.
+  - Created `/tmp/task19.env` from `.env.example` and overrode only Community host ports: `AIRFLOW_PORT=18080`, `JUPYTER_PORT=18888`, `PHP_PORT=18088`, `MINIO_API_PORT=19000`, `MINIO_CONSOLE_PORT=19001`.
+  - Ran `docker compose --env-file /tmp/task19.env up -d --build` for the base Community runtime.
+  - Verified base runtime health: `airflow-postgres` healthy, `airflow-user-init` exit `0`, `airflow-webserver` healthy, `airflow-scheduler` running, `minio` healthy, `minio-init` exit `0`, `jupyter` running, `php` running.
+  - Confirmed MinIO bucket bootstrap for `raw`, `conformed`, and `curated`.
+  - Ran `docker compose --env-file /tmp/task19.env -f docker-compose.yaml -f overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml up -d --build`.
+  - Verified the representative overlay resolved successfully, produced no logical `airflow` service error, produced no credential failure, and left services stable with zero restarts.
+  - Created `/tmp/invalid-overlay.yaml` with `services.airflow`, ran `./start-compose.sh --overlay /tmp/invalid-overlay.yaml`, and confirmed failure with `Error: logical service 'airflow' is not supported: /tmp/invalid-overlay.yaml`.
+  - Reviewed runtime logs for startup failures, dependency failures, credential failures, and restart loops.
+  - Reviewed `README.md` and `RUNBOOK.md` and confirmed documentation alignment with the current Community runtime and overlay rules.
+  - Stopped only the Community runtime with `docker compose --env-file /tmp/task19.env down`.
+- validation result:
+  - pass
+- report path:
+  - `docs/internal/task_19_community_validation_report.md`
+- confirmations:
+  - no runtime files modified
+  - no overlay files modified
+  - Supported runtime not modified
+- recommended next task:
+  - proceed to the next rearchitecture tracker task
