@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: overlay_asx_historic_csv/overlay_asx_historic_csv/docker/airflow/Dockerfile
     volumes:
+      - ./overlay_asx_historic_csv/dags:/opt/airflow/dags/overlay_asx_historic_csv:ro
       - ./scripts:/opt/airflow/scripts
       - ./data:/opt/airflow/data
 
@@ -12,6 +13,7 @@ services:
       context: .
       dockerfile: overlay_asx_historic_csv/overlay_asx_historic_csv/docker/airflow/Dockerfile
     volumes:
+      - ./overlay_asx_historic_csv/dags:/opt/airflow/dags/overlay_asx_historic_csv:ro
       - ./scripts:/opt/airflow/scripts
       - ./data:/opt/airflow/data
 
