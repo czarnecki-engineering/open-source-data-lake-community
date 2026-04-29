@@ -21,8 +21,8 @@ services:
       dockerfile: overlay_asx_historic_csv/overlay_asx_historic_csv/docker/jupyter/Dockerfile
     environment:
       S3_ENDPOINT_URL: "http://minio:9000"
-      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
-      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD}"
       AWS_DEFAULT_REGION: "us-east-1"
     volumes:
       - ./config:/home/jovyan/config:ro

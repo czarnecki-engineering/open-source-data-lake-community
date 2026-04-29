@@ -77,7 +77,7 @@
 - task title: Discover Community vs Supported runtime gaps (delta analysis)
 - repositories affected: Community, Supported
 - task type: discovery / analysis
-- status: blocked
+- status: complete
 - branch: feature/rearchitecture-runtime-overlay-contract
 - report path:
   - docs/internal/task_8_community_supported_delta_analysis.md
@@ -380,3 +380,83 @@
   - `.env` was not committed or staged.
 - recommended next task:
   - Task 17 — Remove Community overlay MinIO credential fallbacks
+
+#### Task 17 Result
+- task id: 17
+- task title: Remove Community overlay MinIO credential fallbacks
+- repository: Community
+- task type: implementation
+- status: complete
+- files changed:
+  - `overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml`
+  - `overlay_kaggle_ingestion/overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml`
+  - `overlay_asx_historic_csv/dev-docker-compose.overlay-asx-historic-csv.yaml`
+  - `overlay_asx_historic_csv/overlay_asx_historic_csv/docker-compose.overlay-asx-historic-csv.yaml`
+  - `docs/internal/rearchitecture_task_tracker.md`
+- summary of changes:
+  - Removed MinIO credential fallback syntax from all in-scope Community overlay Jupyter service definitions.
+  - Replaced `${MINIO_ROOT_USER:-minioadmin}` with `${MINIO_ROOT_USER}` in the Kaggle and ASX dev and packaged overlay compose files.
+  - Replaced `${MINIO_ROOT_PASSWORD:-minioadmin}` with `${MINIO_ROOT_PASSWORD}` in the Kaggle and ASX dev and packaged overlay compose files.
+  - Left base runtime topology, wrapper scripts, Supported runtime files, and overlay composition structure unchanged.
+- validation performed:
+  - Confirmed branch `feature/rearchitecture-runtime-overlay-contract` before implementation.
+  - Ran `grep -R "MINIO_ROOT_.*:-" .` before changes and confirmed the four expected overlay hits plus out-of-scope internal documentation references.
+  - Ran `grep -R "MINIO_ROOT_.*:-" .` after changes and confirmed no in-scope overlay compose files still contain fallback credential syntax; remaining hits are out-of-scope internal documentation references in `docs/internal/task_13_community_validation_report.md`, `docs/internal/discovery_overlay_heartbeat_v2.md`, and `docs/internal/task_14_remediation_plan.md`.
+  - Ran `docker compose --env-file .env.example -f docker-compose.yaml -f overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml config`.
+  - Ran `docker compose --env-file .env.example -f docker-compose.yaml -f overlay_kaggle_ingestion/overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml config`.
+  - Ran `docker compose --env-file .env.example -f docker-compose.yaml -f overlay_asx_historic_csv/dev-docker-compose.overlay-asx-historic-csv.yaml config`.
+  - Ran `docker compose --env-file .env.example -f docker-compose.yaml -f overlay_asx_historic_csv/overlay_asx_historic_csv/docker-compose.overlay-asx-historic-csv.yaml config`.
+  - Confirmed each rendered config parsed successfully with env-only `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD` references; the only warning emitted was the pre-existing base `version` deprecation warning from `docker-compose.yaml`.
+  - Ran `./start-compose.sh --overlay overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml` against the current repo `.env` and confirmed the Task 15 env gate correctly blocked startup because `.env` is incomplete.
+  - Re-ran `./start-compose.sh --overlay overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml` after temporarily substituting `.env.example` as a complete `.env`, and confirmed the env gate passed before startup then stopped at `Error: Docker daemon is not running. Start Docker Desktop and try again.`
+  - Task 17B later revalidated the previously blocked Docker runtime path with Docker daemon access available, using a complete temporary env file outside the repo and the representative overlay `overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml`.
+  - Restored the original repo `.env` after validation and confirmed `.env` was not left modified, staged, or committed.
+- validation result:
+  - pass: implementation is complete for all in-scope overlay compose files, all four changed overlay configs render successfully with env-injected MinIO credentials, and Task 17B completed the previously blocked representative overlay startup validation.
+  - note: repository-wide `grep -R "MINIO_ROOT_.*:-" .` still returns out-of-scope internal documentation references that this task was not permitted to modify.
+- confirmations:
+  - Supported runtime was not modified.
+  - Base runtime was not modified.
+  - `.env` was not committed or staged.
+- recommended next task:
+  - Task 18 — Align Community documentation with runtime
+
+#### Task 17B Result
+- task id: 17B
+- task title: Revalidate Community overlay startup only
+- repository: Community
+- task type: validation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- files changed:
+  - `docs/internal/rearchitecture_task_tracker.md`
+- validation performed:
+  - Confirmed branch `feature/rearchitecture-runtime-overlay-contract`.
+  - Ran `docker info` and confirmed the Docker daemon was reachable.
+  - Ran `grep -R "MINIO_ROOT_.*:-" overlay_kaggle_ingestion overlay_asx_historic_csv` and confirmed no in-scope overlay fallback credential syntax remained.
+  - Created `/tmp/task17b.env` from `.env.example` and overrode only Community host port values to avoid conflicts with already running local services: `AIRFLOW_PORT=18080`, `JUPYTER_PORT=18888`, `PHP_PORT=18088`, `MINIO_API_PORT=19000`, `MINIO_CONSOLE_PORT=19001`.
+  - Ran `docker compose --env-file /tmp/task17b.env -f docker-compose.yaml -f overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml config`.
+  - Ran `docker compose --env-file /tmp/task17b.env -f docker-compose.yaml -f overlay_kaggle_ingestion/overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml config`.
+  - Ran `docker compose --env-file /tmp/task17b.env -f docker-compose.yaml -f overlay_asx_historic_csv/dev-docker-compose.overlay-asx-historic-csv.yaml config`.
+  - Ran `docker compose --env-file /tmp/task17b.env -f docker-compose.yaml -f overlay_asx_historic_csv/overlay_asx_historic_csv/docker-compose.overlay-asx-historic-csv.yaml config`.
+  - Confirmed all four rendered configs succeeded without missing-variable warnings; the only emitted warning was the pre-existing base `version` deprecation warning from `docker-compose.yaml`.
+  - Confirmed rendered configs resolved MinIO credentials from env values and did not contain any `${MINIO_ROOT_*:-...}` fallback expressions.
+  - Temporarily backed up the repo-root `.env`, copied `/tmp/task17b.env` to `.env`, ran `./start-compose.sh --overlay overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml`, then restored the original `.env`.
+  - Confirmed the Task 15 env gate passed, the wrapper reached the Docker build and `up -d` path, and the overlay resolved successfully with no logical `airflow` service error.
+  - Verified the representative Community overlay startup reached running containers for `minio`, `jupyter`, `php`, `airflow-postgres`, `airflow-webserver`, and `airflow-scheduler`, with successful `minio-init` and `airflow-user-init` completion.
+  - Reviewed representative service logs and confirmed no MinIO credential fallback or credential mismatch errors occurred during startup; `minio-init` authenticated successfully and created the `raw`, `conformed`, and `curated` buckets.
+  - Stopped only the Community compose project with `docker compose --env-file /tmp/task17b.env -f docker-compose.yaml -f overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml down`.
+  - Ran `git status --short` and confirmed no `.env` changes were staged or left modified.
+- validation result:
+  - pass
+- Docker daemon reachable:
+  - yes
+- overlay tested:
+  - `overlay_kaggle_ingestion/dev-docker-compose.overlay-kaggle.yaml`
+- confirmations:
+  - no runtime files were modified
+  - no overlay files were modified
+  - `.env` was not committed or staged
+  - Supported runtime was not modified
+- recommended next task:
+  - Task 18 — Align Community documentation with runtime
