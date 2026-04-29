@@ -58,13 +58,15 @@ Use this for normal local startup from the repository root.
 
 ### Environment Variables
 
-Docker Compose reads `.env` from the repository root if it is present. `.env.example` is a template only, so create `.env` explicitly if you want local overrides:
+Docker Compose reads `.env` from the repository root. `.env.example` is a template only, so create `.env` explicitly before starting the stack:
 
 ```bash
 cp .env.example .env
 ```
 
-`./start-compose.sh` does not create `.env`, and any overrides must be defined before you run the start script.
+`./start-compose.sh` does not create `.env`. Keep `.env` untracked, and replace placeholder values with real credentials only for the external integrations you actually use.
+
+Kaggle credentials are required only for the Kaggle overlay.
 
 ### Normal stop
 

@@ -19,7 +19,7 @@ Provides a local Docker Compose stack that combines MinIO object storage, Apache
 The canonical local workflow is in `RUNBOOK.md`. In brief, from the repo root:
 
 1. Create `config/asx200_tickers.csv` (see `config/asx200_tickers_top3.csv` or `config/asx200_tickers_top100.csv` as examples).
-2. If you want to customise environment-based settings, create a local `.env` file from the template:
+2. Create a local `.env` file from the template before starting the stack:
 
 ```bash
 cp .env.example .env
@@ -61,14 +61,14 @@ Docker Compose automatically reads `.env` from the repository root if the file i
 cp .env.example .env
 ```
 
-If `.env` is absent, Docker Compose falls back to the defaults defined in `docker-compose.yaml`. The stack is designed to work out-of-the-box without a `.env` file.
-
 Configuration precedence:
 
-1. `.env` file (if present)
-2. Shell environment variables
-3. Defaults in `docker-compose.yaml`
-4. Hardcoded values in `docker-compose.yaml`
+1. Shell environment variables
+2. `.env` file
+
+`.env.example` contains placeholder/demo values only. Do not commit `.env`, and replace placeholders with real credentials only when an external integration requires them.
+
+Kaggle credentials are required only when running the Kaggle overlay.
 
 Some settings, such as the Airflow executor, S3 endpoint, and internal service configuration, are not exposed via `.env` and require editing `docker-compose.yaml`.
 
@@ -119,7 +119,7 @@ What is not deleted:
 - Sample starting points are available in `config/asx200_tickers_top3.csv` and `config/asx200_tickers_top100.csv`.
 
 # What to Expect When Running
-- Airflow UI: `http://localhost:8080` (user/password are both `minioadmin`).
+- Airflow UI: `http://localhost:8080` (user/password are both `admin`).
 - MinIO Console: `http://localhost:9001` (user/password are both `minioadmin`).
 - MinIO S3 API: `http://localhost:9000`.
 - Jupyter: `http://localhost:8888` (token is `jupyter`).

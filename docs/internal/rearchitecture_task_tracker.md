@@ -202,3 +202,145 @@
   - `./start-compose.sh --overlay kaggle_ingestion` does not resolve because the existing wrapper lookup expects a slug derived from the overlay argument, while the overlay file is named `docker-compose.overlay-kaggle.yaml`; validation used the explicit overlay file path instead. This was recorded but left unchanged because Task 11 scope only permits `start-compose.sh` changes required for legacy logical-airflow failure enforcement.
 - recommended next task:
   - Task 12 — implement Community Stage 3 environment and secrets cleanup
+
+## Task 12 — Implement Community Stage 3 environment and secrets cleanup
+
+- task id: 12
+- task title: Implement Community Stage 3 environment and secrets cleanup
+- repository: Community
+- task type: implementation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- summary of changes:
+  - Expanded `.env.example` into the central placeholder inventory for base runtime credentials, ports, shared runtime settings, and overlay inputs including Kaggle variables and `ENABLED_SOLUTION_TAGS`.
+  - Removed hardcoded Compose fallbacks for active base-runtime credentials, ports, tokens, and shared env settings so runtime values now resolve through explicit environment variables.
+  - Updated Community documentation to require creating a local `.env` from `.env.example`, to keep `.env` untracked, and to treat committed values as placeholders only.
+  - Standardised the demo Airflow admin credentials to `admin` / `admin` and kept MinIO and Jupyter demo placeholders explicit in `.env.example`.
+- files changed:
+  - .env.example
+  - docker-compose.yaml
+  - README.md
+  - RUNBOOK.md
+  - docs/internal/rearchitecture_task_tracker.md
+- variables added or standardised:
+  - AIRFLOW_POSTGRES_USER
+  - AIRFLOW_POSTGRES_PASSWORD
+  - AIRFLOW_POSTGRES_DB
+  - AIRFLOW_ADMIN_USERNAME
+  - AIRFLOW_ADMIN_PASSWORD
+  - AIRFLOW_ADMIN_EMAIL
+  - MINIO_ROOT_USER
+  - MINIO_ROOT_PASSWORD
+  - JUPYTER_TOKEN
+  - PHP_PORT
+  - AIRFLOW_PORT
+  - JUPYTER_PORT
+  - MINIO_API_PORT
+  - MINIO_CONSOLE_PORT
+  - AWS_DEFAULT_REGION
+  - AIRFLOW_UID
+  - AIRFLOW_VAR_ASX_TICKERS
+  - AIRFLOW_PIP_ADDITIONAL_REQUIREMENTS
+  - TZ
+  - ENABLED_SOLUTION_TAGS
+  - KAGGLE_API_TOKEN
+  - KAGGLE_USERNAME
+  - KAGGLE_KEY
+  - KAGGLE_CONFIG_DIR
+- validation result:
+  - pass
+- validation performed:
+  - Confirmed clean starting state before edits with empty `git status --short`.
+  - Confirmed from `docker compose ps -a` that the Community project had no containers running.
+  - Confirmed separately that running Docker containers belonged to another stack and were left untouched.
+  - Ran static secret-presence checks and confirmed committed files contain placeholder values only; observed that the local repo-root `.env` remains untracked and contains operator-local values.
+  - Confirmed `.env` is not staged.
+  - Ran `docker compose config` successfully with shell-injected placeholder values only; no containers were started.
+- runtime validation:
+  - deferred
+- runtime validation notes:
+  - Deferred by design for Task 12 because the Supported stack is already running on the default host ports and static validation was sufficient for this environment/secrets cleanup task.
+- overlay smoke validation:
+  - deferred to Task 13 because runtime validation was intentionally skipped in Task 12.
+- supported stack interference avoided:
+  - yes
+- recommended next task:
+  - Task 13 — implement Community Stage 4 validation alignment and perform the deferred runtime and overlay smoke checks in an isolated port configuration if required
+
+## Task 13 — Community Stage 4 validation
+
+- task id: 13
+- task title: Community Stage 4 validation
+- repository: Community
+- task type: validation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- report path:
+  - docs/internal/task_13_community_validation_report.md
+- summary of findings:
+  - Task 13 was executed as Community Stage 4 validation for the Community runtime only.
+  - Overall result was FAIL because the documented Community startup path accepted an incomplete local `.env`, leaving critical runtime variables blank and causing `airflow-postgres` to restart and `minio-init` to exit `1`.
+  - Static validation confirmed the split-service Airflow compose structure and dev overlay wiring, but repository documentation still describes the legacy single-container SQLite Airflow model and `airflow-db` persistence.
+  - No runtime files were modified during Task 13.
+- validation result:
+  - fail
+- supported runtime revalidated:
+  - no
+- runtime files modified:
+  - no
+- recommended next task:
+  - Resolve the Community runtime env completeness gap and legacy documentation drift, then rerun Community Stage 4 validation in isolation
+
+## Task 14 — Remediation Planning
+
+- task id: 14
+- task title: Remediation Planning
+- repository: Community
+- task type: planning
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- report path:
+  - docs/internal/task_14_remediation_plan.md
+- summary of findings:
+  - Task 13 failures were reduced to four minimal remediation groups: Community env completeness enforcement, base runtime credential dependency correction, overlay credential fallback removal, and documentation alignment.
+  - The runtime startup failure, `minio-init` access-denied failure, and `airflow-postgres` restart failure were classified as cascading outcomes of the accepted incomplete env state and base credential dependency mismatch.
+  - The negative logical-airflow failure and broader documentation drift were scoped to documentation-only alignment against the already-implemented split-service PostgreSQL runtime and wrapper overlay contract.
+  - No runtime files were modified during Task 14; only planning documentation and this task tracker entry were updated.
+- runtime files modified:
+  - no
+- recommended next task:
+  - Task 15 — Enforce Community env completeness in `start-compose.sh`
+
+## Task 15 — Enforce Community env completeness in `start-compose.sh`
+
+- task id: 15
+- task title: Enforce Community env completeness in `start-compose.sh`
+- repository: Community
+- task type: implementation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- files changed:
+  - start-compose.sh
+  - .env.example
+  - docs/internal/rearchitecture_task_tracker.md
+- summary of changes:
+  - Added a required Community env inventory gate to `start-compose.sh` that validates repo-root `.env` presence and rejects missing, blank, and whitespace-only required base runtime variables before any Docker command runs.
+  - Kept existing overlay resolution, duplicate overlay rejection, logical `airflow` overlay rejection, compose file merge order, and compose build/up command construction unchanged.
+  - Updated `.env.example` so the required startup inventory includes a nonblank placeholder for `ENABLED_SOLUTION_TAGS`, allowing a copied example env file to pass the new completeness gate.
+- validation performed:
+  - Confirmed branch `feature/rearchitecture-runtime-overlay-contract` before implementation.
+  - Read Task 13 report, Task 14 remediation plan, tracker, architecture contract, `start-compose.sh`, and `.env.example`.
+  - Ran `bash -n start-compose.sh`.
+  - Verified `.env.example` contains every required startup variable enforced by the new gate.
+  - Verified the existing logical `airflow` overlay rejection remains present in `start-compose.sh`.
+  - Ran a missing-`.env` check with a temporary Docker shim and confirmed `./start-compose.sh` exits non-zero before any Docker call.
+  - Ran an incomplete-`.env` negative test with `AIRFLOW_POSTGRES_PASSWORD` omitted and `MINIO_ROOT_PASSWORD` / `AIRFLOW_PORT` blank, using a temporary Docker shim to confirm `./start-compose.sh` exits non-zero before any Docker call.
+  - Ran a complete-`.env` positive test from `.env.example` with `./start-compose.sh --overlay hello_world`, using a temporary Docker shim to confirm the env gate passes and the existing compose build/up path is reached without starting real containers.
+- validation result:
+  - pass
+- confirmations:
+  - Supported runtime was not modified.
+  - Docker Compose is not invoked when required env values are missing or blank.
+  - `.env` was not committed or staged.
+- recommended next task:
+  - Task 16 — Correct Community base runtime credential dependency wiring
