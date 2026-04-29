@@ -421,6 +421,37 @@
 - recommended next task:
   - Task 18 — Align Community documentation with runtime
 
+#### Task 18 Result
+- task id: 18
+- task title: Align Community documentation with runtime
+- repository: Community
+- task type: implementation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- files changed:
+  - `README.md`
+  - `RUNBOOK.md`
+  - `docs/internal/rearchitecture_task_tracker.md`
+- summary of changes:
+  - Rewrote Community runtime descriptions to reflect the implemented Airflow topology of `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, and `airflow-scheduler`.
+  - Removed Community documentation references that described single-container Airflow, SQLite-backed metadata, and the `airflow-db` volume.
+  - Updated startup instructions to require creating `.env` from `.env.example` and to state that `./start-compose.sh` fails when required env values are missing.
+  - Added explicit overlay guidance that Community overlays must not define `services.airflow`, must target `airflow-webserver` and `airflow-scheduler`, and must keep MinIO credentials env-driven via `${MINIO_ROOT_USER}` and `${MINIO_ROOT_PASSWORD}` without fallback defaults.
+  - Updated MinIO documentation to state that credentials come from env and that the runtime creates the `raw`, `conformed`, and `curated` buckets.
+- validation performed:
+  - Confirmed branch `feature/rearchitecture-runtime-overlay-contract`.
+  - Reviewed `README.md` and `RUNBOOK.md` for runtime, startup, overlay, and MinIO documentation drift against the implemented Community runtime.
+  - Ran targeted searches for `airflow-db`, `sqlite`, `services.airflow`, and legacy Airflow wording after the edits.
+  - Ran `git status --short` to confirm only in-scope documentation files changed.
+- validation result:
+  - pass
+- confirmations:
+  - no runtime files modified
+  - no overlay files modified
+  - Supported runtime not modified
+- recommended next task:
+  - Task 19 — Re-run Community Stage 4 validation
+
 #### Task 17B Result
 - task id: 17B
 - task title: Revalidate Community overlay startup only

@@ -7,7 +7,7 @@ Provides a local Docker Compose stack that combines MinIO object storage, Apache
 # Main Components
 - MinIO (S3-compatible object storage + console).
 - MinIO init job (creates `raw`, `conformed`, `curated` buckets).
-- Apache Airflow (single-container webserver + scheduler, SequentialExecutor, SQLite metadata DB).
+- Apache Airflow runtime split across `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, and `airflow-scheduler`.
 - Jupyter (minimal notebook server with common data libraries).
 - PHP (FrankenPHP container serving `php/` as a simple service index).
 
@@ -31,7 +31,7 @@ cp .env.example .env
 ./start-compose.sh
 ```
 
-This script builds the local images and starts the Docker Compose stack in detached mode.
+`./start-compose.sh` requires a complete repo-root `.env` and exits non-zero if required variables are missing. When `.env` is complete, the script builds the local images and starts the Docker Compose stack in detached mode.
 
 To stop the stack:
 
@@ -53,7 +53,7 @@ If any step fails, follow the detailed operational guidance in `RUNBOOK.md`.
 
 ### Environment Configuration
 
-Docker Compose automatically reads `.env` from the repository root if the file is present.
+Docker Compose automatically reads `.env` from the repository root, and the Community wrapper scripts require it.
 
 `.env.example` is a template only. It is not loaded automatically and is provided as a starting point for a local `.env` file:
 
@@ -70,7 +70,7 @@ Configuration precedence:
 
 Kaggle credentials are required only when running the Kaggle overlay.
 
-Some settings, such as the Airflow executor, S3 endpoint, and internal service configuration, are not exposed via `.env` and require editing `docker-compose.yaml`.
+The runtime does not provide fallback credentials for MinIO. `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD` must be set through `.env`.
 
 # Reset Modes
 
@@ -84,7 +84,7 @@ Use this for ordinary shutdown. Containers are removed, but Docker volumes are p
 
 What stays:
 - MinIO bucket contents in `minio-data`
-- Airflow metadata database in `airflow-db`
+- Airflow PostgreSQL metadata in `postgres-db-volume`
 - Git-tracked local files such as `config/`, `dags/`, `notebooks/`, and `php/`
 - Host bind-mounted directories such as `logs/` and `plugins/`
 
@@ -98,7 +98,7 @@ Use this when you want a clean local reset. This removes the stack containers an
 
 What is deleted:
 - MinIO objects and bucket data stored in `minio-data`
-- Airflow metadata and history stored in `airflow-db`
+- Airflow metadata and history stored in `postgres-db-volume`
 
 What is not deleted:
 - Repository files in the working tree
@@ -120,12 +120,29 @@ What is not deleted:
 
 # What to Expect When Running
 - Airflow UI: `http://localhost:8080` (user/password are both `admin`).
-- MinIO Console: `http://localhost:9001` (user/password are both `minioadmin`).
+- MinIO Console: `http://localhost:9001` (credentials come from `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` in `.env`).
 - MinIO S3 API: `http://localhost:9000`.
 - Jupyter: `http://localhost:8888` (token is `jupyter`).
 - PHP service index: `http://localhost:8088`.
 
 MinIO buckets `raw`, `conformed`, and `curated` are created automatically by the init container. Airflow DAGs write and transform data inside those buckets.
+
+## Runtime Architecture
+
+- There is no logical service named `airflow`.
+- Airflow metadata uses PostgreSQL, not SQLite.
+- The Compose runtime is split into:
+  - `airflow-postgres`
+  - `airflow-user-init`
+  - `airflow-webserver`
+  - `airflow-scheduler`
+
+## Overlay Rules
+
+- Community overlays must not define `services.airflow`.
+- Overlays that extend Airflow must target `airflow-webserver` and `airflow-scheduler`.
+- Legacy logical-`airflow` overlays are incompatible with the current runtime and will fail.
+- Overlay MinIO credentials must remain env-driven through `${MINIO_ROOT_USER}` and `${MINIO_ROOT_PASSWORD}` with no fallback defaults.
 
 ## DAG Execution Model
 
@@ -144,7 +161,7 @@ MinIO buckets `raw`, `conformed`, and `curated` are created automatically by the
 Local persistence is split between Docker volumes and bind-mounted repository folders.
 
 - Docker volume `minio-data`: stores MinIO bucket contents for `raw`, `conformed`, and `curated`
-- Docker volume `airflow-db`: stores the Airflow SQLite metadata database and scheduler/web state
+- Docker volume `postgres-db-volume`: stores the Airflow PostgreSQL metadata database
 - Bind mount `./notebooks`: notebook files remain in the repository working tree
 - Bind mount `./php`: PHP files remain in the repository working tree
 - Bind mounts `./dags`, `./config`, `./logs`, and `./plugins`: remain on disk in the repository
@@ -170,5 +187,5 @@ Practical rule:
 
 # Current Status / Notes
 - The ASX OHLCV DAGs depend on a local `config/asx200_tickers.csv` file; without it they will fail.
-- Airflow uses SQLite and SequentialExecutor in a single container, which is suited to local demos only.
+- Airflow runs as `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, and `airflow-scheduler`, with PostgreSQL-backed metadata and no logical `airflow` service.
 - The PHP landing page references other services (e.g., Metabase, ClickHouse) that are not present in `docker-compose.yaml`.

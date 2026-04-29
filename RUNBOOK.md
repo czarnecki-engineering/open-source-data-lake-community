@@ -16,7 +16,7 @@ It is intended to support:
 This runbook covers the local Docker Compose stack consisting of:
 
 * **MinIO** — object storage (raw / conformed / curated zones)
-* **Apache Airflow** — orchestration and ingestion
+* **Apache Airflow** — orchestration and ingestion via `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, and `airflow-scheduler`
 * **Jupyter** — EDA and data science notebooks
 
 It applies to the **Community Edition** only.
@@ -50,6 +50,7 @@ Use the repository wrapper scripts as the canonical local entry points.
 
 What it does:
 
+* validates that the repo-root `.env` exists and contains all required variables
 * runs `docker compose build`
 * runs `docker compose up -d`
 * prints the default local access URLs
@@ -66,7 +67,11 @@ cp .env.example .env
 
 `./start-compose.sh` does not create `.env`. Keep `.env` untracked, and replace placeholder values with real credentials only for the external integrations you actually use.
 
+Startup fails if `.env` is incomplete. Fill in every required variable from `.env.example` before running `./start-compose.sh`.
+
 Kaggle credentials are required only for the Kaggle overlay.
+
+MinIO credentials must come from `.env` through `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`. The runtime does not provide fallback defaults.
 
 ### Normal stop
 
@@ -138,7 +143,7 @@ Effect:
 Data preserved:
 
 * MinIO bucket contents in volume `minio-data`
-* Airflow metadata in volume `airflow-db`
+* Airflow PostgreSQL metadata in volume `postgres-db-volume`
 * repository files and bind-mounted directories such as `config/`, `dags/`, `notebooks/`, `php/`, `logs/`, and `plugins/`
 
 Typical use:
@@ -161,7 +166,7 @@ Effect:
 Data deleted:
 
 * MinIO bucket contents in `minio-data`
-* Airflow metadata database in `airflow-db`
+* Airflow metadata database in `postgres-db-volume`
 
 Data retained:
 
@@ -182,7 +187,7 @@ This stack does not persist all data in the same place. Operationally, the impor
 | Location | Purpose | Removed by `./stop-compose.sh` | Removed by `./stop-compose.sh --volumes` |
 | --------------- | -------------- | -------------- | -------------- |
 | `minio-data` Docker volume | MinIO buckets and objects | No | Yes |
-| `airflow-db` Docker volume | Airflow SQLite metadata DB and scheduler state | No | Yes |
+| `postgres-db-volume` Docker volume | Airflow PostgreSQL metadata DB | No | Yes |
 | `./notebooks` bind mount | Notebook files in the repo working tree | No | No |
 | `./php` bind mount | PHP service files in the repo working tree | No | No |
 | `./dags` bind mount | DAG source files in the repo working tree | No | No |
@@ -211,7 +216,7 @@ Use this sequence when preparing a clean demo, Medium article, or reproducibilit
 This removes:
 
 * Airflow metadata database
-* MinIO object storage (all buckets and objects)
+* MinIO object storage (the `raw`, `conformed`, and `curated` buckets and their objects)
 * Named and anonymous volumes attached to the stack
 
 It does **not** remove notebook files stored in the bind-mounted `./notebooks` directory.
@@ -299,6 +304,7 @@ This is the **canonical startup sequence**.
 
 This canonical command:
 
+* enforces complete `.env` configuration before any Docker call
 * builds the custom Airflow image
 * builds the custom Jupyter image
 * starts the stack in detached mode
@@ -313,10 +319,13 @@ docker ps --format '{{.Names}}: {{.Status}}' | sort
 
 You should see containers for:
 
-* airflow
+* `airflow-postgres`
+* `airflow-user-init`
+* `airflow-webserver`
+* `airflow-scheduler`
 * minio
 * jupyter
-* supporting services (scheduler, webserver, etc.)
+* php
 
 ---
 
@@ -366,12 +375,14 @@ To run the ASX pipeline:
 
 * URL: `http://localhost:8080`
 * Purpose: ingestion, orchestration, DAG execution
+* Runtime services: `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, `airflow-scheduler`
 
 ### MinIO
 
 * URL: `http://localhost:9001`
 * Purpose: object storage (raw / conformed / curated)
-* Credentials: as defined in `docker-compose.yaml`
+* Credentials: `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD` from `.env`
+* Buckets created automatically: `raw`, `conformed`, `curated`
 
 ### Jupyter
 
@@ -394,6 +405,13 @@ To run the ASX pipeline:
 | Notebooks       | Git-tracked    |
 
 A full reset with `./stop-compose.sh --volumes` destroys data held in the stack Docker volumes, but not files that remain in bind-mounted repository folders.
+
+### Overlay Rules
+
+* Overlays must not define `services.airflow`.
+* Airflow-related overlay changes must target `airflow-webserver` and `airflow-scheduler`.
+* Legacy logical-`airflow` overlays do not match the current runtime and will fail.
+* MinIO credentials in overlays must remain env-driven through `${MINIO_ROOT_USER}` and `${MINIO_ROOT_PASSWORD}` with no fallback syntax.
 
 ---
 
