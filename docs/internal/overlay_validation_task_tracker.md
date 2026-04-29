@@ -1,0 +1,13 @@
+| task_id | task_title | repository_scope | task_type | status | branch | files_changed | report_path | summary_of_findings | validation_performed | validation_result | runtime_files_modified | overlay_files_modified | documentation_files_modified | env_staged_or_committed | other_repo_modified | recommended_next_task |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| OV-00 | Create overlay validation tracker | both | discovery | complete | feature/rearchitecture-runtime-overlay-contract | docs/internal/overlay_validation_task_tracker.md |  | Tracker initialised | Tracker creation only | pass | no | no | yes | no | no | OV-01 |
+| OV-01 | Verify cross-repo contract parity | both | validation | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-02 | Discover Community overlays | community | discovery | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-03 | Discover Supported overlays | supported | discovery | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-04 | Build cross-repo overlay test matrix | both | discovery | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-05 | Community dev-mode validation | community | validation | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-06 | Community installed-mode validation | community | validation | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-07 | Supported dev-mode validation | supported | validation | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-08 | Supported installed-mode validation | supported | validation | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-09 | Cross-repo validation summary | both | validation | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
+| OV-10 | Remediation planning | both | planning | not started | feature/rearchitecture-runtime-overlay-contract |  |  |  |  |  | no | no | yes | no | no |  |
