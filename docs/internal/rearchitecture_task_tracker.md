@@ -123,3 +123,33 @@
   - Final repository-state validation remains blocked because Community also contains pre-existing untracked files outside the Task 9 output set.
 - recommended next task:
   - Implement Community Stage 1 only: replace the single logical `airflow` runtime with `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, and `airflow-scheduler`, and remove SQLite before overlay migration begins.
+
+## Task 10 — Implement Community Stage 1 runtime foundation
+
+- task id: 10
+- task title: Implement Community Stage 1 runtime foundation
+- repository: Community
+- task type: implementation
+- status: complete
+- branch: feature/rearchitecture-runtime-overlay-contract
+- summary of changes:
+  - Replaced the single logical `airflow` service in `docker-compose.yaml` with `airflow-postgres`, `airflow-user-init`, `airflow-webserver`, and `airflow-scheduler`.
+  - Removed SQLite runtime wiring, removed the `airflow-db` volume, and switched Airflow metadata configuration to PostgreSQL via both `AIRFLOW__CORE__SQL_ALCHEMY_CONN` and `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN`.
+  - Added placeholder Postgres variables to `.env.example` for `AIRFLOW_POSTGRES_USER`, `AIRFLOW_POSTGRES_PASSWORD`, and `AIRFLOW_POSTGRES_DB`.
+  - Removed fixed `container_name` declarations from the Community Compose file so this stack can start alongside the already-running Supported stack during validation.
+- validation result:
+  - pass
+- validation performed:
+  - Confirmed clean starting state with empty `git status --short`.
+  - Confirmed base Compose no longer defines a logical `airflow` service.
+  - Confirmed base Compose no longer contains SQLite connection strings or the `airflow-db` volume.
+  - `grep -R "sqlite" .` now returns historical documentation references only; no active runtime reference remains in the base runtime files changed for Task 10.
+  - Brought the Community stack down and up with no overlays using shell-injected placeholder Postgres variables.
+  - Validated `airflow-postgres` healthy, `airflow-user-init` exited `0`, `airflow-webserver` healthy, and `airflow-scheduler` running via `docker compose ps -a`.
+  - Validated Airflow health endpoint from inside `airflow-webserver` with `docker compose exec -T airflow-webserver curl -fsS http://localhost:8080/health`.
+- notes:
+  - Overlays were not migrated in this task and remain intentionally out of scope for Stage 1.
+  - Validation used alternate host ports because the already-running Supported stack occupied the default Community host ports.
+  - Host-side `curl` to the remapped Airflow port was inconsistent in this sandbox, so the authoritative health verification used the container-local Airflow `/health` endpoint plus Compose health state.
+- recommended next task:
+  - Task 11 — Implement Community Stage 2 overlay alignment so all overlays target `airflow-webserver` and `airflow-scheduler` instead of legacy logical `airflow`.
