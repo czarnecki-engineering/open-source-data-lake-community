@@ -200,7 +200,7 @@ Validated notebook checks:
 - conformed Parquet load
 - curated JSON load
 - univariate and bivariate EDA
-- missing `business_date` investigation
+- missing `business_date` checks
 
 Validated finding:
 
@@ -218,7 +218,7 @@ Direct page:
 /solutions/asx_historic_summary.php
 ```
 
-Discovery page:
+Solutions page:
 
 ```text
 /solutions.php

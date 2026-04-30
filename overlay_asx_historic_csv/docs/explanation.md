@@ -43,7 +43,7 @@ The conformed step is generic for simple tabular inputs:
 
 The PHP solution page reads only the mirrored curated JSON.
 
-## PHP Discovery Contract
+## PHP UI Contract
 
 The page `php/solutions/asx_historic_summary.php` uses:
 
@@ -54,7 +54,7 @@ Solution Tag: asx-historic-csv
 That means:
 
 - direct URL access works when the file exists
-- discovery through `php/solutions.php` only works when the PHP container has:
+- listing through `php/solutions.php` only works when the PHP container has:
 
 ```text
 ENABLED_SOLUTION_TAGS=asx-historic-csv
