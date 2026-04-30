@@ -1,120 +1,173 @@
 # HOWTO_OVERLAYS
 
-## Purpose and Scope
+## Purpose
 
-This guide explains how to work with overlays in this repository during development, packaging, installation, and validation.
+This guide explains how to build, package, install, and validate overlays in this repository. Use it for workflow; use [overlay_contract_v1.md](architecture/overlay_contract_v1.md) for rules.
 
-It is a practical companion to the canonical overlay contract. Use this document for workflow guidance, not as a replacement for the contract.
+## Prerequisites
 
-## Relationship to the Canonical Contract
+- Repository checked out locally
+- Docker Engine and Docker Compose v2 available
+- Repository root `.env` created from `.env.example`
+- Base runtime commands available from the repository root:
+  - `./start-compose.sh`
+  - `./stop-compose.sh`
 
-The canonical contract defines the required overlay rules and compatibility requirements.
+## Step 1 — Create overlay
 
-Use this guide to apply that contract when creating, testing, packaging, and installing overlays.
+Create the overlay workspace from the repository root:
 
-Authoritative contract:
-- `docs/architecture/overlay_contract_v1.md`
+```bash
+mkdir -p overlay_x/overlay_x overlay_x/docs
+```
 
-## Overlay Design Principles
+Add only the standard runtime folders your overlay needs under `overlay_x/`:
 
-Keep overlays additive and isolated from the base runtime.
+```text
+overlay_x/
+  config/
+  dags/
+  notebooks/
+  scripts/
+  data/
+  php/
+  overlay_x/
+  docs/
+```
 
-Prefer overlays that:
-- introduce capability without changing base repository behavior
-- keep runtime intent clear in overlay-local documentation
-- remain easy to install, remove, and validate
-- avoid duplicating repository-wide documentation
+Use `overlay_x/overlay_x/README.md` and `overlay_x/overlay_x/RUNBOOK.md` for packaged overlay documentation.
 
-## Required Overlay File Structure
+## Step 2 — Develop overlay
 
-Follow the canonical contract for required files and layout.
+Add overlay files under `overlay_x/`. Keep the packaged runtime content inside `overlay_x/overlay_x/`, and keep optional explanation material under `overlay_x/docs/`.
 
-In practice, contributors should expect overlay-specific runtime documentation to live in the packaged overlay directory:
-- `overlay_x/overlay_x/README.md`
-- `overlay_x/overlay_x/RUNBOOK.md`
+Follow the contract while designing the overlay structure and runtime behavior:
 
-## Optional Overlay Documentation
+- [overlay_contract_v1.md](architecture/overlay_contract_v1.md)
 
-Optional explanatory material may live under:
-- `overlay_x/docs/explanation.md`
+If the overlay needs a development Compose layer, create:
 
-Compatibility entrypoints may also exist at older paths where needed, but they should redirect readers to the current packaged overlay documentation.
+```text
+overlay_x/dev-docker-compose.overlay-x.yaml
+```
 
-## Local Development Workflow
+If the overlay needs an installed-mode Compose layer, package:
 
-Develop overlays from the repository root so they can be exercised against the current base runtime.
+```text
+overlay_x/overlay_x/docker-compose.overlay-x.yaml
+```
 
-Typical workflow:
-1. make changes inside the overlay source tree
-2. start the overlay using its development wrapper when provided
-3. inspect Airflow, MinIO, notebooks, and any overlay-specific service output
-4. stop the overlay and repeat
+## Step 3 — Run in development mode
 
-Use the overlay-local README and RUNBOOK as the first reference for day-to-day work.
+Start the base system from the repository root:
 
-## Testing Workflow
+```bash
+./start-compose.sh
+```
 
-Validate overlays with the smallest practical end-to-end run.
+If the overlay has a development Compose file, restart with the overlay attached:
 
-Focus on:
-- service startup and clean shutdown
-- expected DAG registration and execution
-- expected object creation in storage layers
-- presence of overlay-delivered notebooks, scripts, and application assets
-- absence of unintended impact on the base runtime
+```bash
+./stop-compose.sh
+./start-compose.sh --overlay x
+```
 
-Record validation steps in the overlay-local RUNBOOK where future operators will need them.
+The `--overlay x` form resolves `overlay_x/dev-docker-compose.overlay-x.yaml` automatically. You can also pass the file path directly:
 
-## Packaging and Archive Creation
+```bash
+./start-compose.sh --overlay overlay_x/dev-docker-compose.overlay-x.yaml
+```
 
-Build overlay archives from the overlay source material intended for distribution.
+Verify the overlay is loaded by checking the services and overlay-delivered assets:
 
-Before publishing an archive:
-- confirm the packaged README and RUNBOOK are present
-- confirm development-only files are excluded when they are not part of the install artifact
-- confirm the archive unpacks cleanly into a compatible repository checkout
+```bash
+docker ps --format '{{.Names}}: {{.Status}}' | sort
+docker compose -f docker-compose.yaml -f overlay_x/dev-docker-compose.overlay-x.yaml config --services
+```
 
-Treat archive contents as part of the overlay interface and validate them explicitly.
+Then confirm the expected DAGs, notebooks, PHP pages, or scripts appear in the running stack.
 
-## Installation Workflow
+## Step 4 — Test overlay
 
-Install overlays into a compatible repository checkout from the repository root.
+Confirm the development workflow behaves as expected:
 
-After installation:
-- follow the packaged overlay README for scope and expectations
-- follow the packaged overlay RUNBOOK for execution and validation
-- confirm any required local configuration files are created before runtime execution
+- Services start and stop cleanly
+- Overlay DAGs appear in Airflow
+- Expected files or data paths appear in MinIO, notebooks, or PHP pages
+- Base runtime behavior still works without unexpected regressions
 
-## Validation Against the Contract
+Use the smallest practical end-to-end checks. Typical commands:
 
-Use the canonical contract as the validation source of truth.
+```bash
+docker logs airflow-webserver --tail 100
+docker logs airflow-scheduler --tail 100
+docker logs minio --tail 100
+```
 
-When checking an overlay:
-- verify the file structure against the contract
-- verify runtime behavior against the overlay-local documentation
-- verify installation paths and wrapper scripts behave as documented
+If the overlay uses notebooks or UI pages, open the corresponding service URLs from the running stack and confirm the overlay content is present.
 
-## Compatibility Notes
+## Step 5 — Package overlay
 
-Some legacy documentation paths are retained as compatibility entrypoints.
+Build the archive from the repository root after development-mode validation succeeds:
 
-When both a compatibility entrypoint and a packaged overlay document exist, treat the packaged document as primary.
+```bash
+cd overlay_x
+zip -rq ../overlay_x_v1.0.zip overlay_x docs config dags notebooks scripts data php
+cd ..
+```
 
-Do not use compatibility files as the authoritative source when updating overlay guidance.
+If your overlay does not use every standard folder, omit the folders that are not present. Before publishing the archive, confirm that it contains the packaged runtime folder and any overlay content required at install time.
+
+## Step 6 — Install overlay
+
+Install the archive into a compatible Open Data Lake checkout root:
+
+```bash
+unzip -oq overlay_x_v1.0.zip -d /path/to/open-data-lake
+```
+
+This should install the packaged overlay directory and any overlay content into the target repository root.
+
+## Step 7 — Run in installed mode
+
+From the target repository root, start the system with the installed overlay:
+
+```bash
+./start-compose.sh --overlay x
+```
+
+If the overlay ships a wrapper script, use that wrapper instead:
+
+```bash
+bash overlay_x/start-compose.sh
+```
+
+Verify that installed-mode behavior matches development mode:
+
+- The same services start
+- The same overlay content is visible
+- The same validation steps succeed
+
+Stop the installed overlay with the matching stop path:
+
+```bash
+./stop-compose.sh --overlay x
+```
+
+## Step 8 — Validate against contract
+
+Confirm the overlay structure and behavior align with:
+
+- [overlay_contract_v1.md](architecture/overlay_contract_v1.md)
+
+Check:
+
+- Archive contents match the intended install layout
+- Overlay startup uses supported services and paths
+- Installed-mode validation matches the packaged overlay documentation
 
 ## Troubleshooting
 
-If an overlay does not behave as expected:
-- verify you are using a repository version compatible with the overlay
-- verify required local configuration files exist
-- verify environment variables are set before startup
-- verify the overlay start path matches the intended mode
-- verify the overlay-local RUNBOOK steps were followed in order
-
-If the issue remains unclear, inspect the relevant service logs and validate the installed file layout before changing implementation.
-
-## References
-
-- `docs/architecture/overlay_contract_v1.md`
-- `docs/releases/v1.1.0-overlay-contract-validation-and-installed-mode-stabilisation.md`
-- `RUNBOOK.md`
+- If `./start-compose.sh --overlay x` fails, pass the full overlay Compose path and confirm the file exists.
+- If Docker startup fails, fix `.env` first, then rerun the base stack before retesting the overlay.
+- If installed mode differs from development mode, inspect the archive contents and the packaged `overlay_x/README.md` and `overlay_x/RUNBOOK.md`.
