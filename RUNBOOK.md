@@ -262,15 +262,15 @@ These directories hold generated artefacts and should not be reused for a clean 
 #### macOS / Linux
 
 ```bash
-rm -rf logs eda_output .ipynb_checkpoints
+rm -rf logs notebooks/eda_output notebooks/.ipynb_checkpoints
 ```
 
 #### Windows (PowerShell)
 
 ```powershell
 Remove-Item -Recurse -Force .\logs 2>$null
-Remove-Item -Recurse -Force .\eda_output 2>$null
-Remove-Item -Recurse -Force .\.ipynb_checkpoints 2>$null
+Remove-Item -Recurse -Force .\notebooks\eda_output 2>$null
+Remove-Item -Recurse -Force .\notebooks\.ipynb_checkpoints 2>$null
 ```
 
 Do **not** delete:
@@ -326,6 +326,24 @@ You should see containers for:
 * minio
 * jupyter
 * php
+
+### 3. Post-start validation
+
+Run a few quick checks after startup:
+
+```bash
+docker ps --format '{{.Names}}: {{.Status}}' | sort
+curl -sSf http://localhost:8080/ >/dev/null
+curl -sSf http://localhost:9001/ >/dev/null
+curl -sSf "http://localhost:8888/?token=${JUPYTER_TOKEN}" >/dev/null
+```
+
+Expected results:
+
+* the core containers remain running after startup
+* the Airflow web UI responds on port `8080`
+* the MinIO console responds on port `9001`
+* Jupyter responds when accessed with the token from `.env`
 
 ---
 
@@ -388,7 +406,8 @@ To run the ASX pipeline:
 
 * URL: `http://localhost:8888`
 * Purpose: EDA and data science notebooks
-* Token: as defined in `docker-compose.yaml`
+* Token: set `JUPYTER_TOKEN` in the repo-root `.env`
+* Operational entrypoint: start the stack with `./start-compose.sh` after `.env` is complete
 
 ---
 
@@ -406,12 +425,12 @@ To run the ASX pipeline:
 
 A full reset with `./stop-compose.sh --volumes` destroys data held in the stack Docker volumes, but not files that remain in bind-mounted repository folders.
 
-### Overlay Rules
+### Overlay References
 
-* Overlays must not define `services.airflow`.
-* Airflow-related overlay changes must target `airflow-webserver` and `airflow-scheduler`.
-* Legacy logical-`airflow` overlays do not match the current runtime and will fail.
-* MinIO credentials in overlays must remain env-driven through `${MINIO_ROOT_USER}` and `${MINIO_ROOT_PASSWORD}` with no fallback syntax.
+For overlay rules and validation requirements, use the canonical documents:
+
+* [Overlay Contract](docs/architecture/overlay_contract_v1.md)
+* [Overlay HOWTO](docs/HOWTO_OVERLAYS.md)
 
 ---
 
