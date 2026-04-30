@@ -2,6 +2,27 @@
 
 This runbook describes how to **cleanly tear down**, **rebuild**, and **operate** the Open Source Data Lake – Community Edition using Docker Compose.
 
+NOTE:
+
+This stack is designed to be run on your local machine.
+
+If you run:
+  `./start-compose.sh`
+
+on your laptop, you should be able to open:
+
+- `http://localhost:8080`
+- `http://localhost:9001`
+- `http://localhost:8888`
+
+in your browser.
+
+If you are running commands through a remote agent, sandbox, or tool (e.g. Codex),
+those environments may NOT be able to access Docker-exposed ports via localhost,
+even when the containers are running correctly.
+
+In that case, use the "Remote agent / sandbox validation" section instead of browser or curl checks.
+
 It is intended to support:
 
 * reproducible local deployments,
