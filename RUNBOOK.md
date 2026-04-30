@@ -329,7 +329,11 @@ You should see containers for:
 
 ### 3. Post-start validation
 
-Run a few quick checks after startup.
+Choose the validation path that matches where you are running the stack checks.
+
+#### Local developer machine validation
+
+Use these checks when Docker is publishing ports onto your own workstation and `localhost` is expected to reach the running services.
 
 Airflow may remain `health: starting` for a short period after the containers first appear in `docker ps`. Wait for the endpoints to respond before treating startup as failed.
 
@@ -361,6 +365,30 @@ Expected results:
 * the Airflow web UI responds on port `8080`
 * the MinIO console responds on port `9001`
 * Jupyter responds when accessed with the token from `.env`
+
+#### Remote agent / sandbox validation
+
+Use these checks when you are validating from a remote agent, sandbox, or any environment where `localhost` in the current shell may not be the same machine that owns the Docker-published ports.
+
+```bash
+docker ps --format '{{.Names}}: {{.Status}}' | sort
+docker compose ps
+docker logs airflow-webserver --tail 100
+docker logs minio --tail 100
+docker logs jupyter --tail 100
+docker exec open-source-data-lake-community-airflow-webserver-1 curl -sSf http://localhost:8080/health
+docker exec open-source-data-lake-community-minio-1 curl -sSf http://localhost:9000/minio/health/live
+docker exec open-source-data-lake-community-jupyter-1 sh -lc 'wget -qO- "http://localhost:8888/?token=${JUPYTER_TOKEN}" >/dev/null'
+```
+
+Expected results:
+
+* the core containers remain running after startup
+* `docker compose ps` shows the expected services for the base stack
+* service logs do not show immediate startup failures
+* in-container health checks succeed for Airflow, MinIO, and Jupyter
+
+Failure of `curl http://localhost:...` from a remote agent or sandbox does not by itself prove that the stack is broken. In that situation, rely on container status, logs, `docker compose ps`, and in-container checks instead.
 
 ---
 
