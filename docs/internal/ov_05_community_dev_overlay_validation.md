@@ -16,7 +16,7 @@
 | overlay | dev_command | start_result | airflow | jupyter | php_ui | object_store | result | notes |
 |---|---|---|---|---|---|---|---|---|
 | `overlay_hello_world` | `bash overlay_hello_world/dev-start-compose.sh` | success | pass | pass | pass | pass | pass | `dag_hello_world` remained visible; overlay notebook/PHP/MinIO surfaces were reachable; manual object prefixes stayed empty because no DAG was triggered. |
-| `overlay_heartbeat_v2` | `bash overlay_heartbeat_v2/dev-start-compose.sh` | blocked | blocked | blocked | blocked | blocked | blocked | The documented wrapper again exited before build/start with `Error: Docker daemon is not running.` |
+| `overlay_heartbeat_v2` | `bash overlay_heartbeat_v2/dev-start-compose.sh` | success | pass | pass | pass | pass | pass | Post Docker fix rerun: the wrapper now reaches runtime start, heartbeat DAGs are visible, and Airflow health becomes healthy after a short warm-up. |
 | `overlay_asx_historic_csv` | `bash overlay_asx_historic_csv/dev-start-compose.sh` | success | pass | pass | pass | pass | pass | `dag_asx_historic_csv` is now visible from `/opt/airflow/dags/overlay_asx_historic_csv/dag_asx_historic_csv.py` after OV-05R. |
 | `overlay_kaggle_ingestion` | `bash overlay_kaggle_ingestion/dev-start-compose.sh` | success | pass | pass | pass | pass | pass | `dag_kaggle_ingestion` is now visible from `/opt/airflow/dags/overlay_kaggle_ingestion/dag_kaggle_ingestion.py` after OV-05R. |
 | `overlay_file_only_demo` | `./start-compose.sh` | success | pass | pass | pass | pass | pass | Base runtime started and the declared PHP page loaded; no overlay DAG or object-store surface is declared. |
@@ -65,30 +65,36 @@ pass
 `bash overlay_heartbeat_v2/dev-start-compose.sh`
 
 #### Start Result
-blocked
+success
 
 #### Runtime Checks
-- Airflow: blocked before startup.
-- Jupyter: blocked before startup.
-- PHP/UI: not declared, but base runtime never started.
-- Object store: blocked before startup.
+- Airflow: pass. The first container-local health probe during warm-up failed while the webserver was still `health: starting`; after a short wait the health endpoint returned healthy metadatabase and scheduler JSON.
+- Jupyter: pass. The Compose runtime reached `Up` and the base Jupyter service reported healthy in `docker compose ... ps`.
+- PHP/UI: pass. No heartbeat-specific PHP page is declared, but the base PHP service reported healthy in `docker compose ... ps`.
+- Object store: pass. The base MinIO service reported healthy in `docker compose ... ps`.
 
 #### Overlay Surface Checks
-- DAGs: not reachable because the runtime did not start.
+- DAGs: `heartbeat_v2_to_raw`, `heartbeat_v2_copy_raw_to_conformed`, and `heartbeat_v2_copy_conformed_to_curated` were visible from `/opt/airflow/dags/overlay_heartbeat_v2/...`.
 - PHP/UI: none declared.
-- Notebooks: not reachable because the runtime did not start.
-- Object outputs: not reachable because the runtime did not start.
+- Notebooks: the base Jupyter service reached healthy status.
+- Object outputs: not validated because no heartbeat DAG was triggered in this rerun.
 
 #### Result
-blocked
+pass
 
 #### Evidence
 - Commands run:
   - `bash overlay_heartbeat_v2/dev-start-compose.sh`
+  - `docker compose -f docker-compose.yaml -f overlay_heartbeat_v2/dev-docker-compose.overlay-heartbeat-v2.yaml ps`
+  - `docker compose -f docker-compose.yaml -f overlay_heartbeat_v2/dev-docker-compose.overlay-heartbeat-v2.yaml exec -T airflow-webserver airflow dags list | grep -E 'heartbeat|dag'`
+  - `sleep 20`
+  - `docker compose -f docker-compose.yaml -f overlay_heartbeat_v2/dev-docker-compose.overlay-heartbeat-v2.yaml exec -T airflow-webserver python -c "...urllib.request.urlopen('http://localhost:8080/health')..."`
+  - `bash overlay_heartbeat_v2/dev-stop-compose.sh`
 - Key log/output excerpts:
-  - `Resolved overlays (merge order):`
-  - `- overlay_heartbeat_v2/dev-docker-compose.overlay-heartbeat-v2.yaml`
-  - `Error: Docker daemon is not running. Start Docker Desktop and try again.`
+  - `heartbeat_v2_to_raw | /opt/airflow/dags/overlay_heartbeat_v2/dag_heartbeat_v2_to_raw.py`
+  - `heartbeat_v2_copy_raw_to_conformed | /opt/airflow/dags/overlay_heartbeat_v2/dag_heartbeat_v2_copy_raw_to_conformed.py`
+  - `heartbeat_v2_copy_conformed_to_curated | /opt/airflow/dags/overlay_heartbeat_v2/dag_heartbeat_v2_copy_conformed_to_curated.py`
+  - `{"metadatabase": {"status": "healthy"}, "scheduler": {"status": "healthy"}}`
 
 ### overlay_asx_historic_csv
 
@@ -204,11 +210,18 @@ pass
 - Resolved:
   - `overlay_asx_historic_csv` no longer fails on missing DAG visibility; `dag_asx_historic_csv` is now present in Airflow.
   - `overlay_kaggle_ingestion` no longer fails on missing DAG visibility; `dag_kaggle_ingestion` is now present in Airflow.
+  - `overlay_heartbeat_v2` no longer fails at the shared Docker preflight; the dev-mode wrapper now reaches runtime start and loads the heartbeat DAGs after the Docker fix.
 - Unchanged:
   - `overlay_hello_world` continues to pass.
   - `overlay_file_only_demo` continues to pass.
-  - `overlay_heartbeat_v2` remains blocked at the same documented wrapper error before startup.
 - ASX/Kaggle remediation succeeded in the full rerun.
+
+## OV-05H-D2 — Heartbeat Rerun After Docker Fix
+
+- Start result: `bash overlay_heartbeat_v2/dev-start-compose.sh` succeeded and reached runtime startup.
+- DAG visibility: pass. `heartbeat_v2_to_raw`, `heartbeat_v2_copy_raw_to_conformed`, and `heartbeat_v2_copy_conformed_to_curated` were visible in `airflow dags list`.
+- Runtime health: pass. After the documented warm-up wait, the Airflow health endpoint returned healthy metadatabase and scheduler status; `docker compose ... ps` showed the base runtime services up.
+- Result: pass.
 
 ## Validation Not Performed
 

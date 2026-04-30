@@ -248,8 +248,20 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! docker info >/dev/null 2>&1; then
-  echo "Error: Docker daemon is not running. Start Docker Desktop and try again." >&2
+docker_info_output=""
+if ! docker_info_output="$(docker info 2>&1)"; then
+  echo "Error: Docker preflight failed." >&2
+  if [[ -n "${docker_info_output}" ]]; then
+    printf '%s\n' "${docker_info_output}" >&2
+  else
+    echo "docker info returned a non-zero exit code with no output." >&2
+  fi
+  cat <<'EOF' >&2
+Diagnostic hints:
+- Docker Desktop may not be running.
+- Docker context/socket may be wrong.
+- Current shell may not have permission to access the Docker socket.
+EOF
   exit 1
 fi
 

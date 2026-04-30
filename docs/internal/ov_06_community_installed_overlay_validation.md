@@ -9,9 +9,9 @@
 | overlay | archive | install | start | surfaces | result | notes |
 |---|---|---|---|---|---|---|
 | `overlay_hello_world` | pass | pass | pass | pass | pass | Archive/unzip/start worked in an isolated compatible checkout; `dag_hello_world`, notebook, PHP page, and MinIO buckets were present. The documented `hello_world/` object prefixes were empty because no DAG was triggered. |
-| `overlay_heartbeat_v2` | pass | pass | blocked | blocked | blocked | Installed wrapper exited immediately with `Error: Docker daemon is not running. Start Docker Desktop and try again.` This reproduces the known shared Docker precheck issue. |
+| `overlay_heartbeat_v2` | pass | pass | pass | fail | fail | Post Docker fix rerun: the installed wrapper now starts, the heartbeat DAGs are visible, and the webserver becomes healthy after warm-up, but the Airflow health endpoint reports the scheduler as unhealthy. |
 | `overlay_asx_historic_csv` | pass | pass | pass | pass | pass | Archive/unzip/start worked in an isolated compatible checkout after copying the documented example config to `config/asx_historic_jobs.json`; DAG, notebook, PHP page, and MinIO buckets were present. The documented `asx/historic/example/` prefixes were empty because no DAG was triggered. |
-| `overlay_kaggle_ingestion` | pass | pass | blocked | blocked | blocked | Archive and unzip succeeded, but the installed wrapper exited immediately with `Error: Docker daemon is not running. Start Docker Desktop and try again.` The repo still has conflicting documented archive commands. |
+| `overlay_kaggle_ingestion` | pass | fail | pass | fail | fail | Post Docker fix rerun: the documented `cp config/kaggle_jobs.example.json config/kaggle_jobs.json` step failed because that source file is absent at repo root after unzip. Despite that, the installed wrapper started, `dag_kaggle_ingestion` was visible, PHP returned `200 text/html`, and the Airflow health endpoint reported the scheduler as unhealthy. |
 | `overlay_file_only_demo` | pass | pass | pass | pass | pass | Archive/unzip/base start worked in an isolated compatible checkout; the declared PHP page loaded and the base Airflow/Jupyter/MinIO surfaces were reachable. No overlay DAG, notebook, or object prefix is declared. |
 
 ## Detailed Results
@@ -81,25 +81,35 @@ success
 `bash overlay_heartbeat_v2/start-compose.sh`
 
 #### Start Result
-blocked
+success
 
 #### Runtime Surface Checks
-- Airflow: blocked before startup.
-- DAGs: blocked before startup.
+- Airflow: fail. The installed wrapper reached runtime startup and the webserver container became healthy after warm-up, but the Airflow health endpoint reported `scheduler.status` as `unhealthy`.
+- DAGs: pass. `heartbeat_v2_to_raw`, `heartbeat_v2_copy_raw_to_conformed`, and `heartbeat_v2_copy_conformed_to_curated` were visible under `/opt/airflow/dags/overlay_heartbeat_v2/`.
 - PHP/UI: not declared.
-- Jupyter: blocked before startup.
-- Object store: blocked before startup.
+- Jupyter: pass. The base Jupyter service reported healthy in `docker compose -f docker-compose.yaml ps`.
+- Object store: pass. The base MinIO service reported healthy in `docker compose -f docker-compose.yaml ps`.
 
 #### Result
-blocked
+fail
 
 #### Evidence
 - commands run:
   - `cd overlay_heartbeat_v2 && zip -rq ../overlay_heartbeat_v2.zip dags notebooks overlay_heartbeat_v2`
   - `unzip -oq overlay_heartbeat_v2.zip -d .`
   - `bash overlay_heartbeat_v2/start-compose.sh`
+  - `docker compose -f docker-compose.yaml ps`
+  - `docker compose -f docker-compose.yaml exec -T airflow-webserver airflow dags list | grep -E 'heartbeat|dag'`
+  - `sleep 20`
+  - `sleep 20`
+  - `docker compose -f docker-compose.yaml exec -T airflow-webserver python -c "...urllib.request.urlopen('http://localhost:8080/health')..."`
+  - `docker compose down`
 - key output excerpts:
-  - `Error: Docker daemon is not running. Start Docker Desktop and try again.`
+  - `heartbeat_v2_to_raw | /opt/airflow/dags/overlay_heartbeat_v2/dag_heartbeat_v2_to_raw.py`
+  - `heartbeat_v2_copy_raw_to_conformed | /opt/airflow/dags/overlay_heartbeat_v2/dag_heartbeat_v2_copy_raw_to_conformed.py`
+  - `heartbeat_v2_copy_conformed_to_curated | /opt/airflow/dags/overlay_heartbeat_v2/dag_heartbeat_v2_copy_conformed_to_curated.py`
+  - `STATUS ... airflow-webserver ... Up ... (healthy)`
+  - `{"metadatabase": {"status": "healthy"}, "scheduler": {"status": "unhealthy"}}`
 
 ### overlay_asx_historic_csv
 
@@ -166,23 +176,23 @@ success
 `cp config/kaggle_jobs.example.json config/kaggle_jobs.json`
 
 #### Install Result
-success
+fail
 
 #### Start Command
 `./overlay_kaggle_ingestion/start-compose.sh`
 
 #### Start Result
-blocked
+success
 
 #### Runtime Surface Checks
-- Airflow: blocked before startup.
-- DAGs: blocked before startup.
-- PHP/UI: blocked before startup.
-- Jupyter: blocked before startup.
-- Object store: blocked before startup.
+- Airflow: fail. The installed wrapper reached runtime startup and the webserver container became healthy after warm-up, but the Airflow health endpoint reported `scheduler.status` as `unhealthy`.
+- DAGs: pass. `dag_kaggle_ingestion` was visible at `/opt/airflow/dags/dag_kaggle_ingestion.py`.
+- PHP/UI: pass. `http://php/solutions/dataset_summary.php` returned `200 text/html`.
+- Jupyter: pass. The base Jupyter service reported healthy in `docker compose ... ps`.
+- Object store: pass. The base MinIO service reported healthy in `docker compose ... ps`.
 
 #### Result
-blocked
+fail
 
 #### Evidence
 - commands run:
@@ -190,12 +200,19 @@ blocked
   - `unzip -oq overlay_kaggle_ingestion_v1.0.zip -d .`
   - `cp config/kaggle_jobs.example.json config/kaggle_jobs.json`
   - `./overlay_kaggle_ingestion/start-compose.sh`
-  - `docker info --format '{{.ServerVersion}}'`
+  - `docker compose -f docker-compose.yaml -f overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml ps`
+  - `docker compose -f docker-compose.yaml -f overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml exec -T airflow-webserver airflow dags list | grep 'dag_kaggle_ingestion'`
+  - `sleep 20`
+  - `docker compose -f docker-compose.yaml -f overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml exec -T airflow-webserver python -c "...urllib.request.urlopen('http://localhost:8080/health')..."`
+  - `docker compose -f docker-compose.yaml -f overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml exec -T airflow-webserver python -c "...urllib.request.urlopen('http://php/solutions/dataset_summary.php')..."`
+  - `docker compose down`
 - key output excerpts:
   - `Resolved overlays (merge order):`
   - `- overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml`
-  - `Error: Docker daemon is not running. Start Docker Desktop and try again.`
-  - `29.1.2`
+  - `cp: config/kaggle_jobs.example.json: No such file or directory`
+  - `dag_kaggle_ingestion | /opt/airflow/dags/dag_kaggle_ingestion.py`
+  - `200 text/html`
+  - `{"metadatabase": {"status": "healthy"}, "scheduler": {"status": "unhealthy"}}`
 
 ### overlay_file_only_demo
 
@@ -249,10 +266,10 @@ pass
 
 - Packaging consistency: `overlay_hello_world`, `overlay_asx_historic_csv`, and `overlay_file_only_demo` built archives that installed and started successfully in isolated compatible checkouts. `overlay_heartbeat_v2` still uses a non-versioned archive name, unlike the other packaged overlays.
 - Archive completeness: the installed payloads for hello world, ASX historic CSV, and file-only demo were sufficient to restore the declared runtime surfaces after `unzip -oq ... -d .`.
-- Install behaviour vs dev-mode: hello world, ASX historic CSV, and file-only demo remained stable in installed mode, matching the broad dev-mode outcome from OV-05D. Heartbeat remained blocked by the same startup precheck family. Kaggle diverged from OV-05D by blocking during installed-wrapper startup even though dev-mode had passed in OV-05D.
-- Repeated documentation gaps: Kaggle still has conflicting archive commands between the top-level README and the packaged installed-mode docs. Heartbeat still documents installed mode without a packaged overlay compose file because its wrapper just delegates to the base `start-compose.sh`.
-- Docker preflight issues: `overlay_heartbeat_v2` and `overlay_kaggle_ingestion` both failed at the same documented `Docker daemon is not running` precheck message before the stack started. Kaggle reproduced the message even though a direct `docker info --format '{{.ServerVersion}}'` in the same temp checkout returned `29.1.2`.
-- Env dependency issues: no overlay was blocked by `.env` validation in this run. ASX and Kaggle both require copied example config files for installed mode; only ASX progressed far enough to validate the running surfaces. Kaggle credential requirements remained untested because startup blocked earlier.
+- Install behaviour vs dev-mode: hello world, ASX historic CSV, and file-only demo remained stable in installed mode, matching the broad dev-mode outcome from OV-05D. After the Docker fix rerun, heartbeat no longer blocks at startup in installed mode, but its Airflow health endpoint reported the scheduler unhealthy. Kaggle also no longer blocks at startup, but it diverged from dev-mode because the documented install copy command failed and its Airflow health endpoint likewise reported the scheduler unhealthy.
+- Repeated documentation gaps: Kaggle still has conflicting archive commands between the top-level README and the packaged installed-mode docs, and the documented `cp config/kaggle_jobs.example.json config/kaggle_jobs.json` step does not match the archive layout produced by the documented zip/unzip flow. Heartbeat still uses a non-versioned archive name for installed mode.
+- Docker preflight issues: the previous installed-mode Docker precheck blocker is resolved. Both heartbeat and Kaggle now progress through startup and reach running containers after the Docker fix.
+- Env dependency issues: no overlay was blocked by `.env` validation in this rerun. Kaggle's documented config copy step failed before startup because the expected repo-root source file was absent after unzip. Credential-dependent ingestion was still not exercised.
 - Runtime observation detail: ASX historic CSV and file-only demo both required a short wait before the Airflow webserver became healthy; their first health probes returned `Connection refused` while `airflow-webserver` was still `health: starting`.
 - Validation isolation: the documented archive, install, and start commands were executed verbatim in isolated compatible temp checkouts under `/tmp/ov06.1pY0Ch/` so the working branch runtime files were not altered.
 
@@ -260,9 +277,7 @@ pass
 
 - No DAGs were triggered for any overlay because this task was limited to archive/install/start validation plus passive surface checks.
 - Hello world, ASX historic CSV, and file-only demo object-prefix checks were limited to bucket/prefix visibility; the overlay-specific prefixes stayed empty because no DAG was triggered.
-- Heartbeat v2 runtime surface checks were not performed because startup was blocked by the known Docker precheck issue.
-- Kaggle runtime surface checks were not performed because startup was blocked by the same Docker precheck issue before any containers were created.
-- Kaggle credential-dependent ingestion was not exercised because startup blocked before runtime validation.
+- Kaggle credential-dependent ingestion was not exercised because this rerun was limited to startup and passive surface checks.
 
 ## Recommended Next Task
 
