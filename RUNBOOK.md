@@ -329,13 +329,30 @@ You should see containers for:
 
 ### 3. Post-start validation
 
-Run a few quick checks after startup:
+Run a few quick checks after startup.
+
+Airflow may remain `health: starting` for a short period after the containers first appear in `docker ps`. Wait for the endpoints to respond before treating startup as failed.
 
 ```bash
 docker ps --format '{{.Names}}: {{.Status}}' | sort
-curl -sSf http://localhost:8080/ >/dev/null
-curl -sSf http://localhost:9001/ >/dev/null
-curl -sSf "http://localhost:8888/?token=${JUPYTER_TOKEN}" >/dev/null
+for url in \
+  http://localhost:8080/ \
+  http://localhost:9001/ \
+  "http://localhost:8888/?token=${JUPYTER_TOKEN}"
+do
+  success=false
+  for attempt in $(seq 1 24); do
+    if curl -sSf "$url" >/dev/null; then
+      success=true
+      break
+    fi
+    sleep 5
+  done
+  if [ "$success" != true ]; then
+    echo "Endpoint did not become ready: $url" >&2
+    exit 1
+  fi
+done
 ```
 
 Expected results:
