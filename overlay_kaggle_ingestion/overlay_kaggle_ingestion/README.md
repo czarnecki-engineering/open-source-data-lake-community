@@ -30,7 +30,17 @@ Build the distributable archive from the contents of `overlay_kaggle_ingestion/`
 cd overlay_kaggle_ingestion
 zip -rq ../overlay_kaggle_ingestion_v1.0.zip \
   config scripts dags notebooks php overlay_kaggle_ingestion
+cd ..
 ```
+
+Validated archive contents include:
+
+- `config/`
+- `scripts/`
+- `dags/`
+- `notebooks/`
+- `php/`
+- `overlay_kaggle_ingestion/`
 
 The published runtime archive must not include:
 
@@ -49,8 +59,17 @@ unzip -oq overlay_kaggle_ingestion_v1.0.zip -d .
 cp config/kaggle_jobs.example.json config/kaggle_jobs.json
 ```
 
+The validated install contract is that `config/kaggle_jobs.example.json` exists immediately after `unzip` with no manual file moves.
+
 Configure Kaggle credentials in `.env` or your shell environment, then start with:
 
 ```bash
 bash overlay_kaggle_ingestion/start-compose.sh
+```
+
+After a short Airflow warm-up, validate the installed overlay with:
+
+```bash
+curl http://localhost:8080/health
+docker compose -f docker-compose.yaml -f overlay_kaggle_ingestion/docker-compose.overlay-kaggle.yaml logs airflow-scheduler
 ```
