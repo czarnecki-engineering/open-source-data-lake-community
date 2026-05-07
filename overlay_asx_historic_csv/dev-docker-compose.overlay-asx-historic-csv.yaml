@@ -35,4 +35,5 @@ services:
     environment:
       ENABLED_SOLUTION_TAGS: "asx-historic-csv"
     volumes:
+      - ./overlay_asx_historic_csv/php/solutions:/app/public/solutions:ro
       - ./data:/app/data:ro
