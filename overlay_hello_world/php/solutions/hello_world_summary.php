@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/../inc/submenu.php';
-
 /*
 Solution Title: Hello World Summary
 Solution Summary: Displays the deterministic curated summary produced by the hello-world reference overlay.
@@ -46,7 +44,7 @@ $page_description = 'Deterministic summary output for the hello-world reference 
 ob_start();
 ?>
 <h1>Hello World Summary</h1>
-<?php render_primary_submenu('solutions'); ?>
+<h3><a href="/index.php">Services</a> &nbsp; <a href="/health.php">Health</a> &nbsp; <a href="/solutions.php">Solutions</a></h3>
 
 <p>
   Curated summary path: <code><?= htmlspecialchars($summaryPath) ?></code>
@@ -80,4 +78,4 @@ ob_start();
 <?php endif; ?>
 <?php
 $content = ob_get_clean();
-require __DIR__ . '/../inc/layout.php';
+require '/app/public/inc/layout.php';
