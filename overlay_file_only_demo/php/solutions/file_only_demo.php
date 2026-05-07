@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/../../php/inc/submenu.php';
-
 /*
 Solution Title: File Only Demo
 Solution Summary: Minimal example overlay that proves additive PHP content works without an overlay compose file.
@@ -14,7 +12,7 @@ $page_description = 'Minimal file-only overlay example.';
 ob_start();
 ?>
 <h1>File Only Demo</h1>
-<?php render_primary_submenu('solutions'); ?>
+<h3><a href="/index.php">Services</a> &nbsp; <a href="/health.php">Health</a> &nbsp; <a href="/solutions.php">Solutions</a></h3>
 
 <p>
   This page comes from the <code>overlay_file_only_demo</code> example overlay.
@@ -34,4 +32,4 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-require __DIR__ . '/../../php/inc/layout.php';
+require '/app/public/inc/layout.php';
