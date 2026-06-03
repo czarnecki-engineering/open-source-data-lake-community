@@ -1,10 +1,12 @@
 # ONLYOFFICE Overlay
 
-This overlay adds a minimal Phase 1 local-file ONLYOFFICE prototype to the Community Edition stack.
+This overlay adds the ONLYOFFICE prototype workflow to the Community Edition stack.
 
 ## Purpose
 
 It proves that the PHP service can host a page that launches ONLYOFFICE Docs, opens a single static `.docx` file from local storage, and receives save callbacks that write the edited document back to local disk.
+
+Phase 2A extends the overlay with a MinIO-backed document catalogue at `/onlyoffice/documents.php`. The catalogue lists Office-compatible objects from a prototype `onlyoffice` bucket and routes selection into the existing editor page without replacing the validated local-file save path yet.
 
 ## Optional `.env` values
 
@@ -18,6 +20,7 @@ ONLYOFFICE_DOCS_PORT=8090
 ONLYOFFICE_DOCS_PUBLIC_URL=http://127.0.0.1:8090
 ONLYOFFICE_STORAGE_INTERNAL_URL=http://php
 ONLYOFFICE_JWT_SECRET=replace-with-a-long-random-secret
+ONLYOFFICE_DOCUMENTS_BUCKET=onlyoffice
 ```
 
 `ONLYOFFICE_DOCS_PUBLIC_URL` is used by the browser to load `api.js`.
@@ -33,6 +36,14 @@ The prototype stores:
 
 - `community-prototype.docx`
 - `community-prototype.docx.version`
+
+## MinIO prototype bucket
+
+On overlay startup, `onlyoffice-minio-init` creates a dedicated prototype bucket and uploads:
+
+- `s3://onlyoffice/community-prototype.docx`
+
+This keeps ONLYOFFICE documents separate from the existing `raw`, `conformed`, and `curated` data-lake buckets.
 
 ## Run with the overlay
 

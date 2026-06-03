@@ -339,3 +339,5 @@ function onlyoffice_editor_config(): array
 
   return $config;
 }
+
+require_once __DIR__ . '/catalogue_helpers.php';

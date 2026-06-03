@@ -34,6 +34,10 @@ ob_start();
   This Phase 1 prototype opens a single static local document from <code>./data/onlyoffice/</code> and saves edits back to the same path through the ONLYOFFICE callback handler.
 </p>
 
+<p>
+  Phase 2A adds a MinIO-backed document catalogue at <a href="/onlyoffice/documents.php"><code>/onlyoffice/documents.php</code></a> without changing the validated local-file save workflow.
+</p>
+
 <?php if ($errorMessage !== null): ?>
   <div class="card">
     <h2>Configuration Error</h2>
@@ -54,6 +58,9 @@ ob_start();
     </p>
     <p>
       <a href="/onlyoffice/editor.php"><strong>Open standalone editor</strong></a>
+    </p>
+    <p>
+      <a href="/onlyoffice/documents.php"><strong>Open MinIO document catalogue</strong></a>
     </p>
   </div>
 <?php endif; ?>

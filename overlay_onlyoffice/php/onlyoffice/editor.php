@@ -7,6 +7,7 @@ $errorMessage = null;
 $config = null;
 $version = null;
 $documentKey = null;
+$selectedMinioDocument = onlyoffice_selected_minio_document_uri();
 
 try {
   $version = onlyoffice_read_document_version();
@@ -67,6 +68,17 @@ try {
       text-decoration: underline;
     }
 
+    .onlyoffice-standalone-note {
+      padding: 10px 16px;
+      background: #102235;
+      border-bottom: 1px solid #1f2937;
+      font-size: 14px;
+    }
+
+    .onlyoffice-standalone-note code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
     .onlyoffice-standalone-editor-wrap {
       position: relative;
       flex: 1 1 auto;
@@ -104,12 +116,22 @@ try {
 <?php else: ?>
   <div class="onlyoffice-standalone-bar">
     <div class="onlyoffice-standalone-meta">
-      <span><strong>File:</strong> <code><?= htmlspecialchars(onlyoffice_document_relative_path()) ?></code></span>
+      <span><strong>Local File:</strong> <code><?= htmlspecialchars(onlyoffice_document_relative_path()) ?></code></span>
       <span><strong>Version:</strong> <code><?= htmlspecialchars((string) $version) ?></code></span>
       <span><strong>Key:</strong> <code><?= htmlspecialchars((string) $documentKey) ?></code></span>
     </div>
-    <a href="/solutions/onlyoffice_prototype.php">Back to prototype page</a>
+    <div>
+      <a href="/onlyoffice/documents.php">Document catalogue</a>
+      &nbsp;|&nbsp;
+      <a href="/solutions/onlyoffice_prototype.php">Prototype page</a>
+    </div>
   </div>
+
+<?php if ($selectedMinioDocument !== null): ?>
+  <div class="onlyoffice-standalone-note">
+    Selected MinIO object: <code><?= htmlspecialchars($selectedMinioDocument) ?></code>. The editor still uses the validated local Phase 1 document path until Phase 2B implements MinIO-backed open.
+  </div>
+<?php endif; ?>
 
   <div class="onlyoffice-standalone-editor-wrap">
     <div id="onlyoffice-editor"></div>
