@@ -35,15 +35,35 @@ function onlyoffice_selected_minio_document(): ?array
 {
   $bucket = $_GET['bucket'] ?? null;
   $key = $_GET['key'] ?? null;
+  $etag = $_GET['etag'] ?? null;
+  $lastModified = $_GET['last_modified'] ?? null;
+  $size = $_GET['size'] ?? null;
 
   if (!is_string($bucket) || trim($bucket) === '' || !is_string($key) || trim($key) === '') {
     return null;
   }
 
-  return [
+  $document = [
     'bucket' => trim($bucket),
-    'key' => ltrim(rawurldecode(trim($key)), '/'),
+    'key' => ltrim(trim($key), '/'),
   ];
+
+  if (is_string($etag) && trim($etag) !== '') {
+    $document['etag'] = trim($etag, " \t\n\r\0\x0B\"");
+  }
+
+  if (is_string($lastModified) && trim($lastModified) !== '') {
+    $document['last_modified'] = trim($lastModified);
+  }
+
+  if (is_string($size) && trim($size) !== '') {
+    $parsedSize = filter_var(trim($size), FILTER_VALIDATE_INT);
+    if ($parsedSize !== false && $parsedSize >= 0) {
+      $document['size'] = $parsedSize;
+    }
+  }
+
+  return $document;
 }
 
 function onlyoffice_selected_minio_document_uri(): ?string
@@ -215,6 +235,54 @@ function onlyoffice_s3_request(string $method, string $bucket = '', array $query
   return $response;
 }
 
+function onlyoffice_s3_authorized_headers(string $method, string $canonicalUri, string $canonicalQuery = ''): array
+{
+  $endpoint = parse_url(onlyoffice_minio_endpoint());
+  if (!is_array($endpoint) || !isset($endpoint['host'])) {
+    throw new RuntimeException('ONLYOFFICE MinIO endpoint is invalid.');
+  }
+
+  $payloadHash = hash('sha256', '');
+  $amzDate = gmdate('Ymd\THis\Z');
+  $dateStamp = gmdate('Ymd');
+  $hostHeader = $endpoint['host'] . (isset($endpoint['port']) ? ':' . $endpoint['port'] : '');
+  $canonicalHeaders = implode("\n", [
+    'host:' . $hostHeader,
+    'x-amz-content-sha256:' . $payloadHash,
+    'x-amz-date:' . $amzDate,
+  ]) . "\n";
+  $signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+  $canonicalRequest = implode("\n", [
+    $method,
+    $canonicalUri,
+    $canonicalQuery,
+    $canonicalHeaders,
+    $signedHeaders,
+    $payloadHash,
+  ]);
+  $credentialScope = $dateStamp . '/' . onlyoffice_minio_region() . '/s3/aws4_request';
+  $stringToSign = implode("\n", [
+    'AWS4-HMAC-SHA256',
+    $amzDate,
+    $credentialScope,
+    hash('sha256', $canonicalRequest),
+  ]);
+  $signature = hash_hmac(
+    'sha256',
+    $stringToSign,
+    onlyoffice_s3_signing_key($dateStamp, onlyoffice_minio_region(), onlyoffice_minio_secret_key())
+  );
+  $authorization = 'AWS4-HMAC-SHA256 Credential=' . onlyoffice_minio_access_key() . '/' . $credentialScope
+    . ', SignedHeaders=' . $signedHeaders
+    . ', Signature=' . $signature;
+
+  return [
+    'Authorization: ' . $authorization,
+    'x-amz-content-sha256: ' . $payloadHash,
+    'x-amz-date: ' . $amzDate,
+  ];
+}
+
 function onlyoffice_minio_list_buckets(): array
 {
   $root = onlyoffice_s3_parse_xml(onlyoffice_s3_request('GET'));
@@ -256,6 +324,7 @@ function onlyoffice_minio_list_objects(string $bucket): array
       $objects[] = [
         'bucket' => $bucket,
         'key' => $key,
+        'etag' => isset($content->ETag) ? trim((string) $content->ETag, "\"") : '',
         'size' => isset($content->Size) ? (int) $content->Size : 0,
         'last_modified' => isset($content->LastModified) ? (string) $content->LastModified : '',
       ];
@@ -294,9 +363,15 @@ function onlyoffice_minio_document_catalogue(): array
   ];
 }
 
-function onlyoffice_documents_open_url(string $bucket, string $key): string
+function onlyoffice_documents_open_url(array $document): string
 {
-  return '/onlyoffice/editor.php?bucket=' . rawurlencode($bucket) . '&key=' . rawurlencode($key);
+  return '/onlyoffice/editor.php?' . http_build_query([
+    'bucket' => $document['bucket'],
+    'key' => $document['key'],
+    'etag' => $document['etag'] ?? '',
+    'last_modified' => $document['last_modified'] ?? '',
+    'size' => isset($document['size']) ? (string) $document['size'] : '',
+  ]);
 }
 
 function onlyoffice_format_bytes(int $bytes): string

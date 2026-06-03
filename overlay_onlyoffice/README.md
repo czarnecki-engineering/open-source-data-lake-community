@@ -6,7 +6,11 @@ This overlay adds the ONLYOFFICE prototype workflow to the Community Edition sta
 
 It proves that the PHP service can host a page that launches ONLYOFFICE Docs, opens a single static `.docx` file from local storage, and receives save callbacks that write the edited document back to local disk.
 
-Phase 2A extends the overlay with a MinIO-backed document catalogue at `/onlyoffice/documents.php`. The catalogue lists Office-compatible objects from a prototype `onlyoffice` bucket and routes selection into the existing editor page without replacing the validated local-file save path yet.
+Phase 2A extends the overlay with a MinIO-backed document catalogue at `/onlyoffice/documents.php`. The catalogue lists Office-compatible objects from a prototype `onlyoffice` bucket.
+
+Phase 2B-R re-aligns the open workflow around object-store identity. The catalogue `Open` action passes `bucket` and `key` into the editor and download routes so the visible workflow remains `s3://bucket/key`, while the local fallback document remains available only for prototype validation.
+
+Phase 2B-K keeps that object-store workflow intact while deriving the ONLYOFFICE document key from object revision metadata returned by the MinIO catalogue response, preferring `ETag` and falling back to `LastModified` when needed.
 
 ## Optional `.env` values
 
@@ -37,6 +41,8 @@ The prototype stores:
 - `community-prototype.docx`
 - `community-prototype.docx.version`
 
+Local runtime files may be created under `/app/data/onlyoffice/runtime/` for internal callback handling, but MinIO/S3 remains the intended source of truth for catalogue-selected documents.
+
 ## MinIO prototype bucket
 
 On overlay startup, `onlyoffice-minio-init` creates a dedicated prototype bucket and uploads:
@@ -44,6 +50,8 @@ On overlay startup, `onlyoffice-minio-init` creates a dedicated prototype bucket
 - `s3://onlyoffice/community-prototype.docx`
 
 This keeps ONLYOFFICE documents separate from the existing `raw`, `conformed`, and `curated` data-lake buckets.
+
+Save-back of edited MinIO/S3 objects remains Phase 2C. Phase 2B-R does not introduce a local working document as the user-facing source of truth.
 
 ## Run with the overlay
 

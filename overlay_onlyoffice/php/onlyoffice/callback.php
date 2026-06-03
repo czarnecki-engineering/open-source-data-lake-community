@@ -8,12 +8,17 @@ header('Content-Type: application/json');
 try {
   $payload = onlyoffice_read_callback_request();
   $status = isset($payload['status']) ? (int) $payload['status'] : 0;
+  $selectedDocument = onlyoffice_selected_minio_document();
 
   if (($status === 2 || $status === 6) && isset($payload['url']) && is_string($payload['url']) && $payload['url'] !== '') {
-    onlyoffice_download_callback_file($payload['url'], onlyoffice_document_absolute_path());
+    if ($selectedDocument === null) {
+      onlyoffice_download_callback_file($payload['url'], onlyoffice_document_absolute_path());
 
-    if ($status === 2) {
-      onlyoffice_write_document_version(onlyoffice_read_document_version() + 1);
+      if ($status === 2) {
+        onlyoffice_write_document_version(onlyoffice_read_document_version() + 1);
+      }
+    } else {
+      onlyoffice_download_callback_file($payload['url'], onlyoffice_callback_spool_path($selectedDocument));
     }
   }
 

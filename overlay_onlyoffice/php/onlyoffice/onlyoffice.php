@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 const ONLYOFFICE_DOCUMENT_RELATIVE_PATH = 'onlyoffice/community-prototype.docx';
+const ONLYOFFICE_RUNTIME_RELATIVE_PATH = 'onlyoffice/runtime';
 
 function onlyoffice_env(string $name): string
 {
@@ -18,9 +19,14 @@ function onlyoffice_storage_root(): string
   return '/app/data';
 }
 
-function onlyoffice_document_relative_path(): string
+function onlyoffice_fallback_document_relative_path(): string
 {
   return ONLYOFFICE_DOCUMENT_RELATIVE_PATH;
+}
+
+function onlyoffice_document_relative_path(): string
+{
+  return onlyoffice_fallback_document_relative_path();
 }
 
 function onlyoffice_document_absolute_path(): string
@@ -36,6 +42,22 @@ function onlyoffice_document_version_path(): string
 function onlyoffice_document_title(): string
 {
   return basename(onlyoffice_document_relative_path());
+}
+
+function onlyoffice_runtime_absolute_path(): string
+{
+  return onlyoffice_storage_root() . '/' . ONLYOFFICE_RUNTIME_RELATIVE_PATH;
+}
+
+function onlyoffice_ensure_directory_exists(string $path): void
+{
+  if (is_dir($path)) {
+    return;
+  }
+
+  if (!@mkdir($path, 0775, true) && !is_dir($path)) {
+    throw new RuntimeException('Failed to create directory: ' . $path);
+  }
 }
 
 function onlyoffice_read_document_version(): int
@@ -65,8 +87,49 @@ function onlyoffice_write_document_version(int $version): void
   }
 }
 
-function onlyoffice_document_key(int $version): string
+function onlyoffice_document_source_uri(?array $document = null): string
 {
+  if ($document === null) {
+    return 'file://' . onlyoffice_document_relative_path();
+  }
+
+  return 's3://' . $document['bucket'] . '/' . $document['key'];
+}
+
+function onlyoffice_document_revision_value(array $document): string
+{
+  $etag = isset($document['etag']) && is_string($document['etag']) ? trim($document['etag']) : '';
+  if ($etag !== '') {
+    return 'etag:' . $etag;
+  }
+
+  $lastModified = isset($document['last_modified']) && is_string($document['last_modified'])
+    ? trim($document['last_modified'])
+    : '';
+  if ($lastModified !== '') {
+    return 'last_modified:' . $lastModified;
+  }
+
+  if (isset($document['size']) && is_int($document['size']) && $document['size'] >= 0) {
+    return 'size:' . (string) $document['size'];
+  }
+
+  return 'source:' . onlyoffice_document_source_uri($document);
+}
+
+function onlyoffice_document_key(int $version, ?array $document = null): string
+{
+  if ($document !== null) {
+    return hash(
+      'sha256',
+      implode("\n", [
+        'bucket:' . $document['bucket'],
+        'key:' . $document['key'],
+        onlyoffice_document_revision_value($document),
+      ])
+    );
+  }
+
   return hash('sha256', onlyoffice_document_relative_path() . ':' . $version);
 }
 
@@ -90,14 +153,32 @@ function onlyoffice_storage_internal_url(): string
   return rtrim(onlyoffice_env('ONLYOFFICE_STORAGE_INTERNAL_URL'), '/');
 }
 
-function onlyoffice_download_url(): string
+function onlyoffice_document_query_string(?array $document = null): string
 {
-  return onlyoffice_storage_internal_url() . '/onlyoffice/download.php';
+  if ($document === null) {
+    return '';
+  }
+
+  return http_build_query([
+    'bucket' => $document['bucket'],
+    'key' => $document['key'],
+  ]);
 }
 
-function onlyoffice_callback_url(): string
+function onlyoffice_download_url(?array $document = null): string
 {
-  return onlyoffice_storage_internal_url() . '/onlyoffice/callback.php';
+  $url = onlyoffice_storage_internal_url() . '/onlyoffice/download.php';
+  $query = onlyoffice_document_query_string($document);
+
+  return $query === '' ? $url : $url . '?' . $query;
+}
+
+function onlyoffice_callback_url(?array $document = null): string
+{
+  $url = onlyoffice_storage_internal_url() . '/onlyoffice/callback.php';
+  $query = onlyoffice_document_query_string($document);
+
+  return $query === '' ? $url : $url . '?' . $query;
 }
 
 function onlyoffice_jwt_secret(): string
@@ -225,6 +306,61 @@ function onlyoffice_read_callback_request(): array
   return $verifiedPayload !== [] ? $verifiedPayload : $decodedBody;
 }
 
+function onlyoffice_document_extension(?array $document = null): string
+{
+  $path = $document === null ? onlyoffice_document_relative_path() : $document['key'];
+  $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+  return $extension !== '' ? $extension : 'docx';
+}
+
+function onlyoffice_document_type_from_extension(string $extension): string
+{
+  if (in_array($extension, ['xls', 'xlsx', 'ods'], true)) {
+    return 'cell';
+  }
+
+  if (in_array($extension, ['ppt', 'pptx', 'odp'], true)) {
+    return 'slide';
+  }
+
+  return 'word';
+}
+
+function onlyoffice_document_display_title(?array $document = null): string
+{
+  return $document === null ? onlyoffice_document_title() : basename($document['key']);
+}
+
+function onlyoffice_document_download_filename(?array $document = null): string
+{
+  return onlyoffice_document_display_title($document);
+}
+
+function onlyoffice_document_mime_type(?array $document = null): string
+{
+  return match (onlyoffice_document_extension($document)) {
+    'doc' => 'application/msword',
+    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'odt' => 'application/vnd.oasis.opendocument.text',
+    'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+    'odp' => 'application/vnd.oasis.opendocument.presentation',
+    'xls' => 'application/vnd.ms-excel',
+    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt' => 'application/vnd.ms-powerpoint',
+    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    default => 'application/octet-stream',
+  };
+}
+
+function onlyoffice_callback_spool_path(array $document): string
+{
+  $extension = onlyoffice_document_extension($document);
+  $hash = hash('sha256', onlyoffice_document_source_uri($document));
+
+  return onlyoffice_runtime_absolute_path() . '/callback-' . $hash . '.' . $extension;
+}
+
 function onlyoffice_rewrite_docs_url_for_internal_access(string $sourceUrl): string
 {
   $publicUrl = parse_url(onlyoffice_docs_public_url());
@@ -272,6 +408,7 @@ function onlyoffice_rewrite_docs_url_for_internal_access(string $sourceUrl): str
 
 function onlyoffice_download_callback_file(string $sourceUrl, string $targetPath): void
 {
+  onlyoffice_ensure_directory_exists(dirname($targetPath));
   $downloadUrl = onlyoffice_rewrite_docs_url_for_internal_access($sourceUrl);
   $tmpPath = tempnam(dirname($targetPath), 'onlyoffice-');
   if ($tmpPath === false) {
@@ -309,20 +446,76 @@ function onlyoffice_download_callback_file(string $sourceUrl, string $targetPath
   }
 }
 
+function onlyoffice_s3_object_canonical_uri(string $bucket, string $key): string
+{
+  $segments = array_values(
+    array_filter(explode('/', ltrim($key, '/')), static fn(string $segment): bool => $segment !== '')
+  );
+  $encodedSegments = array_map(static fn(string $segment): string => rawurlencode($segment), $segments);
+
+  $uri = '/' . rawurlencode($bucket);
+  if ($encodedSegments !== []) {
+    $uri .= '/' . implode('/', $encodedSegments);
+  }
+
+  return $uri;
+}
+
+function onlyoffice_minio_get_object(string $bucket, string $key): string
+{
+  $endpoint = parse_url(onlyoffice_minio_endpoint());
+  if (!is_array($endpoint) || !isset($endpoint['scheme'], $endpoint['host'])) {
+    throw new RuntimeException('ONLYOFFICE MinIO endpoint is invalid.');
+  }
+
+  $canonicalUri = onlyoffice_s3_object_canonical_uri($bucket, $key);
+  $url = $endpoint['scheme'] . '://' . $endpoint['host'];
+  if (isset($endpoint['port'])) {
+    $url .= ':' . $endpoint['port'];
+  }
+  $url .= $canonicalUri;
+
+  $ch = curl_init($url);
+  curl_setopt_array($ch, [
+    CURLOPT_HTTPGET => true,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_CONNECTTIMEOUT => 10,
+    CURLOPT_TIMEOUT => 120,
+    CURLOPT_FAILONERROR => false,
+    CURLOPT_HTTPHEADER => onlyoffice_s3_authorized_headers('GET', $canonicalUri),
+  ]);
+
+  $response = curl_exec($ch);
+  $error = curl_error($ch);
+  $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+
+  if (!is_string($response)) {
+    throw new RuntimeException('Failed to download the selected MinIO object: ' . ($error !== '' ? $error : 'no body'));
+  }
+
+  if ($statusCode < 200 || $statusCode >= 300) {
+    throw new RuntimeException("Failed to download the selected MinIO object: HTTP {$statusCode}.");
+  }
+
+  return $response;
+}
+
 function onlyoffice_editor_config(): array
 {
-  $version = onlyoffice_read_document_version();
+  $selectedDocument = onlyoffice_selected_minio_document();
+  $version = $selectedDocument === null ? onlyoffice_read_document_version() : 1;
+  $extension = onlyoffice_document_extension($selectedDocument);
 
   $config = [
     'document' => [
-      'fileType' => 'docx',
-      'key' => onlyoffice_document_key($version),
-      'title' => onlyoffice_document_title(),
-      'url' => onlyoffice_download_url(),
+      'fileType' => $extension,
+      'key' => onlyoffice_document_key($version, $selectedDocument),
+      'title' => onlyoffice_document_display_title($selectedDocument),
+      'url' => onlyoffice_download_url($selectedDocument),
     ],
-    'documentType' => 'word',
+    'documentType' => onlyoffice_document_type_from_extension($extension),
     'editorConfig' => [
-      'callbackUrl' => onlyoffice_callback_url(),
+      'callbackUrl' => onlyoffice_callback_url($selectedDocument),
       'mode' => 'edit',
       'user' => [
         'id' => 'community-onlyoffice-poc',

@@ -193,13 +193,13 @@ try {
             <td data-label="Object Key"><code><?= htmlspecialchars($document['key']) ?></code></td>
             <td data-label="Size"><?= htmlspecialchars(onlyoffice_format_bytes($document['size'])) ?></td>
             <td data-label="Last Modified"><?= htmlspecialchars(onlyoffice_format_timestamp($document['last_modified'])) ?></td>
-            <td data-label="Action"><a href="<?= htmlspecialchars(onlyoffice_documents_open_url($document['bucket'], $document['key'])) ?>">Open</a></td>
+            <td data-label="Action"><a href="<?= htmlspecialchars(onlyoffice_documents_open_url($document)) ?>">Open</a></td>
           </tr>
 <?php endforeach; ?>
         </tbody>
       </table>
       <p class="status-note">
-        The Open action records the selected MinIO object for the editor route while the validated Phase 1 local-file save workflow remains unchanged until Phase 2B.
+        The Open action passes the selected MinIO bucket, object key, and revision metadata directly to the editor route.
       </p>
 <?php endif; ?>
     </div>

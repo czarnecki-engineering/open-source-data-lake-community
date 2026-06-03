@@ -8,10 +8,11 @@ $config = null;
 $version = null;
 $documentKey = null;
 $selectedMinioDocument = onlyoffice_selected_minio_document_uri();
+$selectedMinioSource = onlyoffice_selected_minio_document();
 
 try {
-  $version = onlyoffice_read_document_version();
-  $documentKey = onlyoffice_document_key($version);
+  $version = $selectedMinioSource === null ? onlyoffice_read_document_version() : 1;
+  $documentKey = onlyoffice_document_key($version, $selectedMinioSource);
   $config = onlyoffice_editor_config();
 } catch (Throwable $exception) {
   $errorMessage = $exception->getMessage();
@@ -116,7 +117,7 @@ try {
 <?php else: ?>
   <div class="onlyoffice-standalone-bar">
     <div class="onlyoffice-standalone-meta">
-      <span><strong>Local File:</strong> <code><?= htmlspecialchars(onlyoffice_document_relative_path()) ?></code></span>
+      <span><strong>Document:</strong> <code><?= htmlspecialchars($selectedMinioDocument ?? onlyoffice_document_source_uri()) ?></code></span>
       <span><strong>Version:</strong> <code><?= htmlspecialchars((string) $version) ?></code></span>
       <span><strong>Key:</strong> <code><?= htmlspecialchars((string) $documentKey) ?></code></span>
     </div>
@@ -129,7 +130,14 @@ try {
 
 <?php if ($selectedMinioDocument !== null): ?>
   <div class="onlyoffice-standalone-note">
-    Selected MinIO object: <code><?= htmlspecialchars($selectedMinioDocument) ?></code>. The editor still uses the validated local Phase 1 document path until Phase 2B implements MinIO-backed open.
+    Selected object-store document:
+    <code><?= htmlspecialchars($selectedMinioDocument) ?></code>.
+    Local files are not part of the visible document model on this route.
+  </div>
+<?php else: ?>
+  <div class="onlyoffice-standalone-note">
+    Fallback prototype document:
+    <code><?= htmlspecialchars(onlyoffice_document_source_uri()) ?></code>.
   </div>
 <?php endif; ?>
 

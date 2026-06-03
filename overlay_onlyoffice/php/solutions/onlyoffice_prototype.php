@@ -35,7 +35,7 @@ ob_start();
 </p>
 
 <p>
-  Phase 2A adds a MinIO-backed document catalogue at <a href="/onlyoffice/documents.php"><code>/onlyoffice/documents.php</code></a> without changing the validated local-file save workflow.
+  Phase 2A adds a MinIO-backed document catalogue at <a href="/onlyoffice/documents.php"><code>/onlyoffice/documents.php</code></a>. Opening from the catalogue now identifies documents by <code>s3://bucket/key</code>, while save-back to MinIO/S3 remains Phase 2C.
 </p>
 
 <?php if ($errorMessage !== null): ?>

@@ -3,6 +3,24 @@ declare(strict_types=1);
 
 require '/app/public/onlyoffice/onlyoffice.php';
 
+try {
+  $selectedDocument = onlyoffice_selected_minio_document();
+
+  if ($selectedDocument !== null) {
+    $content = onlyoffice_minio_get_object($selectedDocument['bucket'], $selectedDocument['key']);
+    header('Content-Type: ' . onlyoffice_document_mime_type($selectedDocument));
+    header('Content-Disposition: inline; filename="' . rawurlencode(onlyoffice_document_download_filename($selectedDocument)) . '"');
+    header('Content-Length: ' . (string) strlen($content));
+    echo $content;
+    exit;
+  }
+} catch (Throwable $exception) {
+  http_response_code(502);
+  header('Content-Type: application/json');
+  echo json_encode(['error' => $exception->getMessage()], JSON_THROW_ON_ERROR);
+  exit;
+}
+
 $path = onlyoffice_document_absolute_path();
 
 if (!is_file($path) || !is_readable($path)) {
@@ -12,8 +30,8 @@ if (!is_file($path) || !is_readable($path)) {
   exit;
 }
 
-header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-header('Content-Disposition: inline; filename="' . rawurlencode(onlyoffice_document_title()) . '"');
+header('Content-Type: ' . onlyoffice_document_mime_type());
+header('Content-Disposition: inline; filename="' . rawurlencode(onlyoffice_document_download_filename()) . '"');
 header('Content-Length: ' . (string) filesize($path));
 
 $handle = fopen($path, 'rb');
