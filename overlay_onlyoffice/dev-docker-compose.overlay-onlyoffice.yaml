@@ -1,0 +1,8 @@
+services:
+  onlyoffice-docs:
+    image: onlyoffice/documentserver:latest
+    ports:
+      - "${ONLYOFFICE_DOCS_PORT:-8090}:80"
+    environment:
+      TZ: "${TZ}"
+    restart: unless-stopped
