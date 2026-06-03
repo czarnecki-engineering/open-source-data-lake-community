@@ -12,6 +12,8 @@ Phase 2B-R re-aligns the open workflow around object-store identity. The catalog
 
 Phase 2B-K keeps that object-store workflow intact while deriving the ONLYOFFICE document key from object revision metadata returned by the MinIO catalogue response, preferring `ETag` and falling back to `LastModified` when needed.
 
+Phase 2C adds MinIO-backed save-back for catalogue-selected documents. The editor callback now carries a signed state token instead of trusting raw callback `bucket` and `key` parameters, requires a validated ONLYOFFICE callback JWT for save statuses, downloads the edited file into the hidden runtime area, and overwrites the original MinIO object with the inferred document `Content-Type`.
+
 ## Optional `.env` values
 
 This overlay provides development defaults in
@@ -24,6 +26,7 @@ ONLYOFFICE_DOCS_PORT=8090
 ONLYOFFICE_DOCS_PUBLIC_URL=http://127.0.0.1:8090
 ONLYOFFICE_STORAGE_INTERNAL_URL=http://php
 ONLYOFFICE_JWT_SECRET=replace-with-a-long-random-secret
+ONLYOFFICE_CALLBACK_STATE_SECRET=replace-with-a-separate-secret-if-desired
 ONLYOFFICE_DOCUMENTS_BUCKET=onlyoffice
 ```
 
@@ -41,7 +44,7 @@ The prototype stores:
 - `community-prototype.docx`
 - `community-prototype.docx.version`
 
-Local runtime files may be created under `/app/data/onlyoffice/runtime/` for internal callback handling, but MinIO/S3 remains the intended source of truth for catalogue-selected documents.
+Local runtime files may be created under `/app/data/onlyoffice/runtime/` for internal callback handling, but MinIO/S3 remains the intended source of truth for catalogue-selected documents. Runtime temp files are collision-safe implementation details and are deleted after callback processing where possible.
 
 ## MinIO prototype bucket
 
@@ -51,7 +54,7 @@ On overlay startup, `onlyoffice-minio-init` creates a dedicated prototype bucket
 
 This keeps ONLYOFFICE documents separate from the existing `raw`, `conformed`, and `curated` data-lake buckets.
 
-Save-back of edited MinIO/S3 objects remains Phase 2C. Phase 2B-R does not introduce a local working document as the user-facing source of truth.
+Phase 2C save-back overwrites the original `s3://bucket/key` object with simple last-writer-wins behaviour. It does not add conflict detection, version history, locking, or metadata preservation beyond `Content-Type`.
 
 ## Run with the overlay
 

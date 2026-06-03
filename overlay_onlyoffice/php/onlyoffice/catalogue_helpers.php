@@ -235,23 +235,47 @@ function onlyoffice_s3_request(string $method, string $bucket = '', array $query
   return $response;
 }
 
-function onlyoffice_s3_authorized_headers(string $method, string $canonicalUri, string $canonicalQuery = ''): array
+function onlyoffice_s3_authorized_headers(
+  string $method,
+  string $canonicalUri,
+  string $canonicalQuery = '',
+  ?string $payloadHash = null,
+  array $additionalHeaders = []
+): array
 {
   $endpoint = parse_url(onlyoffice_minio_endpoint());
   if (!is_array($endpoint) || !isset($endpoint['host'])) {
     throw new RuntimeException('ONLYOFFICE MinIO endpoint is invalid.');
   }
 
-  $payloadHash = hash('sha256', '');
+  $payloadHash = $payloadHash ?? hash('sha256', '');
   $amzDate = gmdate('Ymd\THis\Z');
   $dateStamp = gmdate('Ymd');
   $hostHeader = $endpoint['host'] . (isset($endpoint['port']) ? ':' . $endpoint['port'] : '');
-  $canonicalHeaders = implode("\n", [
-    'host:' . $hostHeader,
-    'x-amz-content-sha256:' . $payloadHash,
-    'x-amz-date:' . $amzDate,
-  ]) . "\n";
-  $signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+  $headers = [
+    'host' => $hostHeader,
+    'x-amz-content-sha256' => $payloadHash,
+    'x-amz-date' => $amzDate,
+  ];
+
+  foreach ($additionalHeaders as $name => $value) {
+    $headerName = strtolower(trim((string) $name));
+    $headerValue = trim((string) $value);
+    if ($headerName === '' || $headerValue === '') {
+      continue;
+    }
+
+    $headers[$headerName] = $headerValue;
+  }
+
+  ksort($headers);
+
+  $canonicalHeaders = '';
+  foreach ($headers as $name => $value) {
+    $canonicalHeaders .= $name . ':' . $value . "\n";
+  }
+
+  $signedHeaders = implode(';', array_keys($headers));
   $canonicalRequest = implode("\n", [
     $method,
     $canonicalUri,
@@ -276,11 +300,16 @@ function onlyoffice_s3_authorized_headers(string $method, string $canonicalUri, 
     . ', SignedHeaders=' . $signedHeaders
     . ', Signature=' . $signature;
 
-  return [
-    'Authorization: ' . $authorization,
-    'x-amz-content-sha256: ' . $payloadHash,
-    'x-amz-date: ' . $amzDate,
-  ];
+  $headerLines = ['Authorization: ' . $authorization];
+  foreach ($headers as $name => $value) {
+    if ($name === 'host') {
+      continue;
+    }
+
+    $headerLines[] = $name . ': ' . $value;
+  }
+
+  return $headerLines;
 }
 
 function onlyoffice_minio_list_buckets(): array
