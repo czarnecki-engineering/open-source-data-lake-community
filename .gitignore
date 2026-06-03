@@ -1,6 +1,6 @@
 # Runtime state
 logs/
-data/
+/data/
 volumes/
 notebooks/eda_output/
 
