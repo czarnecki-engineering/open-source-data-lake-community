@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require '/app/public/inc/onlyoffice.php';
+require '/app/public/onlyoffice/onlyoffice.php';
 
 $path = onlyoffice_document_absolute_path();
 

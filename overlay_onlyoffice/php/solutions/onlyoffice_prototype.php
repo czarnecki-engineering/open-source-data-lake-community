@@ -7,7 +7,7 @@ Solution Summary: Static local-file ONLYOFFICE editor proof of concept for a sin
 Solution Tag: onlyoffice
 */
 
-require '/app/public/inc/onlyoffice.php';
+require '/app/public/onlyoffice/onlyoffice.php';
 
 $page_title = 'ONLYOFFICE Prototype';
 $page_description = 'Static local-file ONLYOFFICE editor proof of concept.';
@@ -47,18 +47,15 @@ ob_start();
     <p><strong>Document Key:</strong> <code><?= htmlspecialchars((string) $documentKey) ?></code></p>
   </div>
 
-  <div class="card">
-    <h2>Editor</h2>
-    <div id="onlyoffice-editor" style="height: 720px;"></div>
+  <div class="onlyoffice-prototype-editor-shell">
+    <h2>Standalone Editor</h2>
+    <p>
+      Open the standalone validation route to bypass the Community page container and render ONLYOFFICE directly in a full-browser editor surface.
+    </p>
+    <p>
+      <a href="/onlyoffice/editor.php"><strong>Open standalone editor</strong></a>
+    </p>
   </div>
-
-  <script src="<?= htmlspecialchars(onlyoffice_docs_public_url()) ?>/web-apps/apps/api/documents/api.js"></script>
-  <script>
-    window.addEventListener("DOMContentLoaded", function () {
-      var config = <?= json_encode($config, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-      new DocsAPI.DocEditor("onlyoffice-editor", config);
-    });
-  </script>
 <?php endif; ?>
 <?php
 $content = ob_get_clean();

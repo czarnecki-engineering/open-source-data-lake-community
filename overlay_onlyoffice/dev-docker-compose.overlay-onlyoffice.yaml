@@ -18,7 +18,6 @@ services:
       ONLYOFFICE_STORAGE_INTERNAL_URL: "${ONLYOFFICE_STORAGE_INTERNAL_URL:-http://php}"
       ONLYOFFICE_JWT_SECRET: "${ONLYOFFICE_JWT_SECRET:-change-me-onlyoffice-dev-secret}"
     volumes:
-      - ./overlay_onlyoffice/php/solutions/onlyoffice_prototype.php:/app/public/solutions/onlyoffice_prototype.php:ro
+      - ./overlay_onlyoffice/php/solutions:/app/public/solutions:ro
       - ./overlay_onlyoffice/php/onlyoffice:/app/public/onlyoffice:ro
-      - ./overlay_onlyoffice/php/inc/onlyoffice.php:/app/public/inc/onlyoffice.php:ro
-      - ./overlay_onlyoffice/data/onlyoffice:/app/data/onlyoffice
+      - ./overlay_onlyoffice/data:/app/data
