@@ -32,6 +32,79 @@ services:
       JWT_IN_BODY: "true"
     restart: unless-stopped
 
+  nextcloud-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "${NEXTCLOUD_DB_NAME:-nextcloud}"
+      POSTGRES_USER: "${NEXTCLOUD_DB_USER:-nextcloud}"
+      POSTGRES_PASSWORD: "${NEXTCLOUD_DB_PASSWORD:-nextcloud-dev-password}"
+    volumes:
+      - nextcloud-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${NEXTCLOUD_DB_USER:-nextcloud} -d ${NEXTCLOUD_DB_NAME:-nextcloud}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  nextcloud-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  nextcloud:
+    image: nextcloud:31-apache
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_healthy
+    ports:
+      - "${NEXTCLOUD_PORT:-8091}:80"
+    environment:
+      TZ: "${TZ}"
+      POSTGRES_HOST: "nextcloud-db"
+      POSTGRES_DB: "${NEXTCLOUD_DB_NAME:-nextcloud}"
+      POSTGRES_USER: "${NEXTCLOUD_DB_USER:-nextcloud}"
+      POSTGRES_PASSWORD: "${NEXTCLOUD_DB_PASSWORD:-nextcloud-dev-password}"
+      NEXTCLOUD_ADMIN_USER: "${NEXTCLOUD_ADMIN_USER:-admin}"
+      NEXTCLOUD_ADMIN_PASSWORD: "${NEXTCLOUD_ADMIN_PASSWORD:-admin123}"
+      NEXTCLOUD_TRUSTED_DOMAINS: "${NEXTCLOUD_TRUSTED_DOMAINS:-127.0.0.1 localhost nextcloud}"
+      OVERWRITEHOST: "${NEXTCLOUD_OVERWRITEHOST:-127.0.0.1:8091}"
+      OVERWRITEPROTOCOL: "${NEXTCLOUD_OVERWRITEPROTOCOL:-http}"
+      REDIS_HOST: "${NEXTCLOUD_REDIS_HOST:-nextcloud-redis}"
+    volumes:
+      - nextcloud-custom-apps:/var/www/html/custom_apps
+      - nextcloud-config:/var/www/html/config
+      - nextcloud-data:/var/www/html/data
+    restart: unless-stopped
+
+  nextcloud-cron:
+    image: nextcloud:31-apache
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_healthy
+    entrypoint: /cron.sh
+    environment:
+      TZ: "${TZ}"
+      POSTGRES_HOST: "nextcloud-db"
+      POSTGRES_DB: "${NEXTCLOUD_DB_NAME:-nextcloud}"
+      POSTGRES_USER: "${NEXTCLOUD_DB_USER:-nextcloud}"
+      POSTGRES_PASSWORD: "${NEXTCLOUD_DB_PASSWORD:-nextcloud-dev-password}"
+      REDIS_HOST: "${NEXTCLOUD_REDIS_HOST:-nextcloud-redis}"
+    volumes:
+      - nextcloud-custom-apps:/var/www/html/custom_apps
+      - nextcloud-config:/var/www/html/config
+      - nextcloud-data:/var/www/html/data
+    restart: unless-stopped
+
   php:
     environment:
       ENABLED_SOLUTION_TAGS: "onlyoffice"
@@ -47,3 +120,9 @@ services:
       - ./overlay_onlyoffice/php/solutions:/app/public/solutions:ro
       - ./overlay_onlyoffice/php/onlyoffice:/app/public/onlyoffice:ro
       - ./overlay_onlyoffice/data:/app/data
+
+volumes:
+  nextcloud-db-data:
+  nextcloud-custom-apps:
+  nextcloud-config:
+  nextcloud-data:
