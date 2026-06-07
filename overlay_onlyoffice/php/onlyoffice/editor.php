@@ -17,6 +17,8 @@ try {
 } catch (Throwable $exception) {
   $errorMessage = $exception->getMessage();
 }
+
+$selectedDocumentDisplay = $selectedMinioDocument ?? onlyoffice_document_source_uri();
 ?>
 <!doctype html>
 <html lang="en">
@@ -32,8 +34,8 @@ try {
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background: #0b0f14;
-      color: #e6edf3;
+      background: #f5f7fa;
+      color: #152033;
       font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
     }
 
@@ -44,24 +46,43 @@ try {
 
     .onlyoffice-standalone-bar {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
       padding: 12px 16px;
-      background: #141b23;
-      border-bottom: 1px solid #1f2937;
+      background: #ffffff;
+      border-bottom: 1px solid #d8e0ea;
       flex: 0 0 auto;
     }
 
-    .onlyoffice-standalone-meta {
+    .onlyoffice-standalone-heading {
       display: flex;
       flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
       gap: 8px 16px;
+    }
+
+    .onlyoffice-standalone-heading h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .onlyoffice-standalone-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .onlyoffice-standalone-bar p {
+      margin: 0;
       font-size: 14px;
     }
 
     .onlyoffice-standalone-bar a {
-      color: #3fa9f5;
+      color: #0b57a4;
       text-decoration: none;
     }
 
@@ -69,15 +90,30 @@ try {
       text-decoration: underline;
     }
 
-    .onlyoffice-standalone-note {
-      padding: 10px 16px;
-      background: #102235;
-      border-bottom: 1px solid #1f2937;
+    .onlyoffice-standalone-meta {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 14px;
+      margin-top: 8px;
     }
 
-    .onlyoffice-standalone-note code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    .onlyoffice-standalone-meta th,
+    .onlyoffice-standalone-meta td {
+      padding: 8px 10px;
+      border: 1px solid #d8e0ea;
+      text-align: left;
+      vertical-align: top;
+      background: #ffffff;
+    }
+
+    .onlyoffice-standalone-meta th {
+      width: 160px;
+      background: #f7f9fc;
+    }
+
+    .onlyoffice-standalone-meta code,
+    .onlyoffice-standalone-error code {
+      word-break: break-word;
     }
 
     .onlyoffice-standalone-editor-wrap {
@@ -100,46 +136,120 @@ try {
 
     .onlyoffice-standalone-error {
       padding: 24px;
+      max-width: 960px;
+      margin: 0 auto;
     }
 
-    .onlyoffice-standalone-error code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    .onlyoffice-standalone-error-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .onlyoffice-standalone-details {
+      border: 1px solid #d8e0ea;
+      background: #f7f9fc;
+    }
+
+    .onlyoffice-standalone-details summary {
+      cursor: pointer;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      list-style: none;
+    }
+
+    .onlyoffice-standalone-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .onlyoffice-standalone-details summary::after {
+      content: "Show";
+      float: right;
+      font-weight: 400;
+      color: #4b5b73;
+    }
+
+    .onlyoffice-standalone-details[open] summary::after {
+      content: "Hide";
+    }
+
+    @media (max-width: 720px) {
+      .onlyoffice-standalone-meta th {
+        width: 120px;
+      }
     }
   </style>
 </head>
 <body>
 <?php if ($errorMessage !== null): ?>
   <div class="onlyoffice-standalone-error">
-    <h1>ONLYOFFICE Standalone Editor</h1>
-    <p><a href="/solutions/onlyoffice_prototype.php">Back to prototype page</a></p>
-    <p><strong>Configuration error:</strong> <?= htmlspecialchars($errorMessage) ?></p>
+    <h1>Editor Configuration Error</h1>
+    <p><?= htmlspecialchars($errorMessage) ?></p>
+    <p class="onlyoffice-standalone-error-links">
+      <a href="/onlyoffice/documents.php">Back to document catalogue</a>
+      <a href="/solutions/onlyoffice_prototype.php">Back to prototype page</a>
+    </p>
   </div>
 <?php else: ?>
   <div class="onlyoffice-standalone-bar">
-    <div class="onlyoffice-standalone-meta">
-      <span><strong>Document:</strong> <code><?= htmlspecialchars($selectedMinioDocument ?? onlyoffice_document_source_uri()) ?></code></span>
-      <span><strong>Version:</strong> <code><?= htmlspecialchars((string) $version) ?></code></span>
-      <span><strong>Key:</strong> <code><?= htmlspecialchars((string) $documentKey) ?></code></span>
+    <div class="onlyoffice-standalone-heading">
+      <h1>ONLYOFFICE Editor</h1>
+      <div class="onlyoffice-standalone-nav">
+        <a href="/onlyoffice/documents.php">Document catalogue</a>
+        <a href="/solutions/onlyoffice_prototype.php">Prototype page</a>
+      </div>
     </div>
-    <div>
-      <a href="/onlyoffice/documents.php">Document catalogue</a>
-      &nbsp;|&nbsp;
-      <a href="/solutions/onlyoffice_prototype.php">Prototype page</a>
-    </div>
-  </div>
-
-<?php if ($selectedMinioDocument !== null): ?>
-  <div class="onlyoffice-standalone-note">
-    Selected object-store document:
-    <code><?= htmlspecialchars($selectedMinioDocument) ?></code>.
-    Local files are not part of the visible document model on this route.
-  </div>
-<?php else: ?>
-  <div class="onlyoffice-standalone-note">
-    Fallback prototype document:
-    <code><?= htmlspecialchars(onlyoffice_document_source_uri()) ?></code>.
-  </div>
+    <p>
+      The ONLYOFFICE configuration, callback URL, download URL, and document key logic remain unchanged.
+    </p>
+    <details class="onlyoffice-standalone-details">
+      <summary>Document details: <code><?= htmlspecialchars(basename($selectedMinioSource['key'] ?? onlyoffice_document_relative_path())) ?></code></summary>
+      <table class="onlyoffice-standalone-meta">
+        <tbody>
+          <tr>
+            <th>Document</th>
+            <td><code><?= htmlspecialchars(basename($selectedMinioSource['key'] ?? onlyoffice_document_relative_path())) ?></code></td>
+          </tr>
+          <tr>
+            <th>Version</th>
+            <td><code><?= htmlspecialchars((string) $version) ?></code></td>
+          </tr>
+          <tr>
+            <th>Key</th>
+            <td><code><?= htmlspecialchars((string) $documentKey) ?></code></td>
+          </tr>
+          <tr>
+            <th>Source URI</th>
+            <td><code><?= htmlspecialchars($selectedDocumentDisplay) ?></code></td>
+          </tr>
+<?php if ($selectedMinioSource !== null): ?>
+          <tr>
+            <th>Bucket</th>
+            <td><code><?= htmlspecialchars($selectedMinioSource['bucket']) ?></code></td>
+          </tr>
+          <tr>
+            <th>Object Key</th>
+            <td><code><?= htmlspecialchars($selectedMinioSource['key']) ?></code></td>
+          </tr>
+<?php if (isset($selectedMinioSource['size']) && is_int($selectedMinioSource['size'])): ?>
+          <tr>
+            <th>Size</th>
+            <td><?= htmlspecialchars(onlyoffice_format_bytes($selectedMinioSource['size'])) ?></td>
+          </tr>
 <?php endif; ?>
+<?php if (isset($selectedMinioSource['last_modified']) && is_string($selectedMinioSource['last_modified']) && $selectedMinioSource['last_modified'] !== ''): ?>
+          <tr>
+            <th>Last Modified</th>
+            <td><?= htmlspecialchars(onlyoffice_format_timestamp($selectedMinioSource['last_modified'])) ?></td>
+          </tr>
+<?php endif; ?>
+<?php endif; ?>
+        </tbody>
+      </table>
+    </details>
+  </div>
 
   <div class="onlyoffice-standalone-editor-wrap">
     <div id="onlyoffice-editor"></div>

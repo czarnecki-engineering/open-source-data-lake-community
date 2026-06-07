@@ -55,57 +55,99 @@ try {
 
 ob_start();
 ?>
+<style>
+  .onlyoffice-section-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 24px;
+  }
+
+  .onlyoffice-note {
+    margin-top: 12px;
+  }
+
+  .onlyoffice-compact-table th,
+  .onlyoffice-compact-table td {
+    vertical-align: top;
+  }
+
+  .onlyoffice-compact-table code {
+    word-break: break-word;
+  }
+</style>
+
 <h1>ONLYOFFICE Prototype</h1>
 <h3><a href="/index.php">Services</a> &nbsp; <a href="/health.php">Health</a> &nbsp; <a href="/solutions.php">Solutions</a></h3>
 
 <p>
-  This Phase 1 prototype opens a single static local document from <code>./data/onlyoffice/</code> and saves edits back to the same path through the ONLYOFFICE callback handler.
+  This solution page validates the ONLYOFFICE overlay with both the original local prototype document and the MinIO-backed document catalogue routes.
 </p>
 
-<p>
-  Phase 2A adds a MinIO-backed document catalogue at <a href="/onlyoffice/documents.php"><code>/onlyoffice/documents.php</code></a>. Opening from the catalogue now identifies documents by <code>s3://bucket/key</code>, while save-back to MinIO/S3 remains Phase 2C.
+<p class="onlyoffice-section-links">
+  <a href="/solutions/onlyoffice_prototype.php">Prototype page</a>
+  <a href="/onlyoffice/documents.php">Document catalogue</a>
+  <a href="/onlyoffice/editor.php">Standalone editor</a>
 </p>
 
 <div class="card">
-  <h2>Document Browsing And Editing</h2>
+  <h2>What this page demonstrates</h2>
+  <p>
+    The local prototype document opens from <code>./data/onlyoffice/</code> and uses the existing ONLYOFFICE callback flow to save edits back to the same path.
+  </p>
+  <p>
+    The document catalogue at <a href="/onlyoffice/documents.php"><code>/onlyoffice/documents.php</code></a> lists Office-compatible MinIO objects and opens them in the same editor route using <code>s3://bucket/key</code> identity.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Document browsing and editing</h2>
   <p>
     Use these entry points to browse the same MinIO-backed documents through either the PHP catalogue or Nextcloud Files.
   </p>
-  <table class="tiers-compare">
+  <table class="tiers-compare onlyoffice-compact-table">
     <thead>
-      <tr><th style="width: 220px;">Entry Point</th><th>URL</th><th>Purpose</th></tr>
+      <tr><th style="width: 220px;">Entry Point</th><th style="width: 260px;">Link</th><th>Purpose</th></tr>
     </thead>
     <tbody>
       <?php foreach ($entryPoints as $entryPoint): ?>
         <?php if ($entryPoint['group'] !== 'Document Browsing And Editing') { continue; } ?>
         <tr>
           <td><strong><?= htmlspecialchars($entryPoint['name']) ?></strong></td>
-          <td><a href="<?= htmlspecialchars($entryPoint['url']) ?>" target="_blank" rel="noopener"><?= htmlspecialchars($entryPoint['url']) ?></a></td>
+          <td>
+            <a href="<?= htmlspecialchars($entryPoint['url']) ?>" target="_blank" rel="noopener">
+              <?= htmlspecialchars($entryPoint['url']) ?>
+            </a>
+          </td>
           <td><?= htmlspecialchars($entryPoint['purpose']) ?></td>
         </tr>
       <?php endforeach; ?>
     </tbody>
   </table>
-  <p>
-    Development Nextcloud login defaults: <strong>Username:</strong> <code>admin</code>, <strong>Password:</strong> <code>admin123</code>
+  <p class="onlyoffice-note">
+    <strong>Note:</strong> Development Nextcloud login defaults are <strong>Username:</strong> <code>admin</code> and <strong>Password:</strong> <code>admin123</code>.
   </p>
 </div>
 
 <div class="card">
-  <h2>Operator And Service Entry Points</h2>
+  <h2>Operator and service entry points</h2>
   <p>
     Use these links for service visibility and storage inspection rather than document browsing.
   </p>
-  <table class="tiers-compare">
+  <table class="tiers-compare onlyoffice-compact-table">
     <thead>
-      <tr><th style="width: 220px;">Entry Point</th><th>URL</th><th>Purpose</th></tr>
+      <tr><th style="width: 220px;">Entry Point</th><th style="width: 260px;">Link</th><th>Purpose</th></tr>
     </thead>
     <tbody>
       <?php foreach ($entryPoints as $entryPoint): ?>
         <?php if ($entryPoint['group'] !== 'Operator And Service Entry Points') { continue; } ?>
         <tr>
           <td><strong><?= htmlspecialchars($entryPoint['name']) ?></strong></td>
-          <td><a href="<?= htmlspecialchars($entryPoint['url']) ?>" target="_blank" rel="noopener"><?= htmlspecialchars($entryPoint['url']) ?></a></td>
+          <td>
+            <a href="<?= htmlspecialchars($entryPoint['url']) ?>" target="_blank" rel="noopener">
+              <?= htmlspecialchars($entryPoint['url']) ?>
+            </a>
+          </td>
           <td><?= htmlspecialchars($entryPoint['purpose']) ?></td>
         </tr>
       <?php endforeach; ?>
@@ -120,22 +162,25 @@ ob_start();
   </div>
 <?php else: ?>
   <div class="card">
-    <h2>Document</h2>
-    <p><strong>File:</strong> <code><?= htmlspecialchars(onlyoffice_document_relative_path()) ?></code></p>
-    <p><strong>Version:</strong> <code><?= htmlspecialchars((string) $version) ?></code></p>
-    <p><strong>Document Key:</strong> <code><?= htmlspecialchars((string) $documentKey) ?></code></p>
-  </div>
-
-  <div class="onlyoffice-prototype-editor-shell">
-    <h2>Standalone Editor</h2>
+    <h2>Standalone editor validation</h2>
     <p>
-      Open the standalone validation route to bypass the Community page container and render ONLYOFFICE directly in a full-browser editor surface.
+      Use the standalone editor route to bypass the solution page container and validate the dedicated editor surface directly.
     </p>
     <p>
       <a href="/onlyoffice/editor.php"><strong>Open standalone editor</strong></a>
     </p>
     <p>
       <a href="/onlyoffice/documents.php"><strong>Open MinIO document catalogue</strong></a>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Current document configuration</h2>
+    <p><strong>File:</strong> <code><?= htmlspecialchars(onlyoffice_document_relative_path()) ?></code></p>
+    <p><strong>Version:</strong> <code><?= htmlspecialchars((string) $version) ?></code></p>
+    <p><strong>Document Key:</strong> <code><?= htmlspecialchars((string) $documentKey) ?></code></p>
+    <p>
+      The editor configuration is generated from the same ONLYOFFICE route and document key logic used by the standalone validation page.
     </p>
   </div>
 <?php endif; ?>
