@@ -119,14 +119,47 @@ Multiple overlays may be provided:
 
 6.2 Overlay YAML
 
-Overlay-specific runtime configuration (e.g. environment variables) may be defined using overlay YAML.
+Overlay-specific runtime configuration (e.g. environment variables) may be defined using overlay YAML or overlay Compose fragments.
 
-This YAML:
-- must not modify base runtime definitions
-- must be limited to environment variables and explicit service-specific overrides against services that exist in the base runtime
+This runtime configuration:
 - is optional
+- must remain additive and removable
+- must not require direct modification of the base stack unless the contract explicitly allows that behaviour
+- may add Docker Compose resources, including services, volumes, networks, bind mounts, environment variables, and init/helper containers
+- may extend or configure existing base-runtime services where necessary
+- should use overlay-specific names or prefixes for overlay-added Docker resources where practical
 
 No additional overlay manifest format is defined.
+
+
+6.3 Docker Resource Rules
+
+Overlays may add Docker resources required to deliver overlay functionality, provided those resources are namespaced to the overlay and do not destructively shadow or replace base runtime files.
+
+Allowed additive resources include:
+- services
+- volumes
+- networks
+- bind mounts
+- environment variables
+- init/helper containers
+
+Overlay-added Docker resources should use overlay-specific names or prefixes where practical.
+
+Examples:
+- onlyoffice-docs
+- nextcloud-db
+- overlay_onlyoffice_*
+
+
+6.4 Non-Destructive Overlay Rule
+
+Overlays must not mount over or replace shared base application directories unless that behaviour is explicitly documented and justified by the overlay.
+
+In particular, overlays must not shadow:
+- /app/public/inc
+- base layout/helper files
+- other shared base runtime directories required by the core app
 
 
 7. Airflow Contract
@@ -210,6 +243,27 @@ The php/ folder allows overlays to provide:
 - Files under php/ are served by the web component
 - An overlay may provide a landing page (e.g. index.php)
 - The runtime may expose these pages via a standard route
+- Overlay PHP pages should live under overlay-specific routes such as php/<overlay-name>/
+- Overlay solution summary pages may live under php/solutions/
+- Pages should reuse the base app layout via /app/public/inc/layout.php
+- Overlays should not duplicate inc/layout.php
+
+
+10.3 Packaging
+
+Source-tree development helpers belong in the overlay root.
+
+Examples:
+- overlay_<name>/dev-start-compose.sh
+- overlay_<name>/dev-stop-compose.sh
+
+Packaged runtime files belong in the nested package folder.
+
+Examples:
+- overlay_onlyoffice/overlay_onlyoffice/start-compose.sh
+- overlay_onlyoffice/overlay_onlyoffice/...
+
+The nested package folder is the install/unzip payload layout.
 
 
 11. Secrets and Credentials
@@ -251,6 +305,8 @@ All implementations must:
 - expose the standard installation folders
 - ensure those folders are visible to runtime services
 - preserve overlay merge semantics
+- preserve additive overlay behaviour
+- allow overlays to remain removable without requiring direct base-stack edits beyond explicitly permitted contract behaviour
 
 
 14. Non-Contract Elements

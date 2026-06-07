@@ -1,6 +1,13 @@
-# ONLYOFFICE Overlay
+# ONLYOFFICE Runtime Overlay
 
-This overlay follows the same source-tree and packaged-runtime split as the reference overlays.
+This is the packaged runtime folder for the ONLYOFFICE overlay.
+
+Runtime surfaces assumed after install:
+
+- `php/onlyoffice/*.php`
+- `php/solutions/onlyoffice_prototype.php`
+- `data/onlyoffice/community-prototype.docx`
+- `overlay_onlyoffice/docker-compose.overlay-onlyoffice.yaml`
 
 ## Dev / source-tree mode
 
@@ -31,7 +38,7 @@ cd overlay_onlyoffice
 zip -rq ../overlay_onlyoffice_v1.0.zip php data overlay_onlyoffice
 ```
 
-## Install from archive
+## Install the overlay
 
 From the root of a compatible Community checkout:
 

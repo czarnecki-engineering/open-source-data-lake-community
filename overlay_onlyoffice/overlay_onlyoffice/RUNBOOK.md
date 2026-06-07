@@ -1,6 +1,4 @@
-# ONLYOFFICE Overlay
-
-This overlay follows the same source-tree and packaged-runtime split as the reference overlays.
+# ONLYOFFICE Runtime Runbook
 
 ## Dev / source-tree mode
 
@@ -31,7 +29,7 @@ cd overlay_onlyoffice
 zip -rq ../overlay_onlyoffice_v1.0.zip php data overlay_onlyoffice
 ```
 
-## Install from archive
+## Install the overlay
 
 From the root of a compatible Community checkout:
 
@@ -39,21 +37,21 @@ From the root of a compatible Community checkout:
 unzip -oq overlay_onlyoffice_v1.0.zip -d .
 ```
 
-## Run the installed overlay with the base stack
+## Run the installed archive with the base stack
 
-Start with:
+Start:
 
 ```bash
 bash overlay_onlyoffice/start-compose.sh
 ```
 
-This packaged wrapper runs the base root wrapper with:
+This packaged wrapper uses:
 
 ```bash
 ./start-compose.sh --overlay overlay_onlyoffice/docker-compose.overlay-onlyoffice.yaml
 ```
 
-Stop with:
+Stop:
 
 ```bash
 bash overlay_onlyoffice/stop-compose.sh

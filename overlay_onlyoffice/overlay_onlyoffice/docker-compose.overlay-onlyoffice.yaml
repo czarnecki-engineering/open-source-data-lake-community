@@ -1,0 +1,128 @@
+services:
+  onlyoffice-minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+      ONLYOFFICE_DOCUMENTS_BUCKET: "${ONLYOFFICE_DOCUMENTS_BUCKET:-onlyoffice}"
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 \"$${MINIO_ROOT_USER}\" \"$${MINIO_ROOT_PASSWORD}\" &&
+      mc mb --ignore-existing local/$${ONLYOFFICE_DOCUMENTS_BUCKET} &&
+      mc cp /seed/community-prototype.docx local/$${ONLYOFFICE_DOCUMENTS_BUCKET}/community-prototype.docx &&
+      mc ls local/$${ONLYOFFICE_DOCUMENTS_BUCKET} &&
+      echo 'ONLYOFFICE MinIO bucket initialised'
+      "
+    volumes:
+      - ./data/onlyoffice:/seed:ro
+    restart: "no"
+
+  onlyoffice-docs:
+    image: onlyoffice/documentserver:latest
+    ports:
+      - "${ONLYOFFICE_DOCS_PORT:-8090}:80"
+    environment:
+      TZ: "${TZ}"
+      JWT_ENABLED: "true"
+      JWT_SECRET: "${ONLYOFFICE_JWT_SECRET:-change-me-onlyoffice-dev-secret}"
+      JWT_HEADER: "Authorization"
+      JWT_IN_BODY: "true"
+    restart: unless-stopped
+
+  nextcloud-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "${NEXTCLOUD_DB_NAME:-nextcloud}"
+      POSTGRES_USER: "${NEXTCLOUD_DB_USER:-nextcloud}"
+      POSTGRES_PASSWORD: "${NEXTCLOUD_DB_PASSWORD:-nextcloud-dev-password}"
+    volumes:
+      - nextcloud-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${NEXTCLOUD_DB_USER:-nextcloud} -d ${NEXTCLOUD_DB_NAME:-nextcloud}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  nextcloud-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  nextcloud:
+    image: nextcloud:31-apache
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_healthy
+    ports:
+      - "${NEXTCLOUD_PORT:-8091}:80"
+    environment:
+      TZ: "${TZ}"
+      POSTGRES_HOST: "nextcloud-db"
+      POSTGRES_DB: "${NEXTCLOUD_DB_NAME:-nextcloud}"
+      POSTGRES_USER: "${NEXTCLOUD_DB_USER:-nextcloud}"
+      POSTGRES_PASSWORD: "${NEXTCLOUD_DB_PASSWORD:-nextcloud-dev-password}"
+      NEXTCLOUD_ADMIN_USER: "${NEXTCLOUD_ADMIN_USER:-admin}"
+      NEXTCLOUD_ADMIN_PASSWORD: "${NEXTCLOUD_ADMIN_PASSWORD:-admin123}"
+      NEXTCLOUD_TRUSTED_DOMAINS: "${NEXTCLOUD_TRUSTED_DOMAINS:-127.0.0.1 localhost nextcloud}"
+      OVERWRITEHOST: "${NEXTCLOUD_OVERWRITEHOST:-127.0.0.1:8091}"
+      OVERWRITEPROTOCOL: "${NEXTCLOUD_OVERWRITEPROTOCOL:-http}"
+      REDIS_HOST: "${NEXTCLOUD_REDIS_HOST:-nextcloud-redis}"
+    volumes:
+      - nextcloud-custom-apps:/var/www/html/custom_apps
+      - nextcloud-config:/var/www/html/config
+      - nextcloud-data:/var/www/html/data
+    restart: unless-stopped
+
+  nextcloud-cron:
+    image: nextcloud:31-apache
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_healthy
+    entrypoint: /cron.sh
+    environment:
+      TZ: "${TZ}"
+      POSTGRES_HOST: "nextcloud-db"
+      POSTGRES_DB: "${NEXTCLOUD_DB_NAME:-nextcloud}"
+      POSTGRES_USER: "${NEXTCLOUD_DB_USER:-nextcloud}"
+      POSTGRES_PASSWORD: "${NEXTCLOUD_DB_PASSWORD:-nextcloud-dev-password}"
+      REDIS_HOST: "${NEXTCLOUD_REDIS_HOST:-nextcloud-redis}"
+    volumes:
+      - nextcloud-custom-apps:/var/www/html/custom_apps
+      - nextcloud-config:/var/www/html/config
+      - nextcloud-data:/var/www/html/data
+    restart: unless-stopped
+
+  php:
+    environment:
+      ENABLED_SOLUTION_TAGS: "onlyoffice"
+      ONLYOFFICE_DOCS_PUBLIC_URL: "${ONLYOFFICE_DOCS_PUBLIC_URL:-http://127.0.0.1:8090}"
+      ONLYOFFICE_STORAGE_INTERNAL_URL: "${ONLYOFFICE_STORAGE_INTERNAL_URL:-http://php}"
+      ONLYOFFICE_JWT_SECRET: "${ONLYOFFICE_JWT_SECRET:-change-me-onlyoffice-dev-secret}"
+      S3_ENDPOINT_URL: "${S3_ENDPOINT_URL:-http://minio:9000}"
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD}"
+      AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION:-us-east-1}"
+      ONLYOFFICE_DOCUMENTS_BUCKET: "${ONLYOFFICE_DOCUMENTS_BUCKET:-onlyoffice}"
+    volumes:
+      - ./php/solutions:/app/public/solutions:ro
+      - ./php/onlyoffice:/app/public/onlyoffice:ro
+      - ./data:/app/data
+
+volumes:
+  nextcloud-db-data:
+  nextcloud-custom-apps:
+  nextcloud-config:
+  nextcloud-data:
