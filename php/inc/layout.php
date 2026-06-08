@@ -65,9 +65,11 @@ $PUBLIC_BASE = 'https://czarneckii.com';
     <ul id="site-menu" class="nav-menu">
       <li><a href="<?= $PUBLIC_BASE ?>/">Home</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/products/">Products</a></li>
+      <li><a href="<?= $PUBLIC_BASE ?>/tiers/compare/">Compare</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/local/">My Data Lake</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/services/">Services</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/insights/">Insights</a></li>
+      <li><a href="<?= $PUBLIC_BASE ?>/case-studies/">Case Studies</a></li>
       <li><a href="<?= $PUBLIC_BASE ?>/contact/">Contact</a></li>
     </ul>    
   </div>
