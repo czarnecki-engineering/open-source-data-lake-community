@@ -1,0 +1,4 @@
+{
+  "interval": "1m",
+  "message_format": "Knowledge Lake heartbeat at {timestamp}"
+}

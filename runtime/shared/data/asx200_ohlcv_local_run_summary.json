@@ -1,0 +1,1817 @@
+{
+  "request_id": "asx200-ohlcv-v2-10y-rolling-2026-07-20",
+  "start_date": "2016-08-22",
+  "end_date": "2026-08-19",
+  "ticker_count": 201,
+  "outputs": [
+    {
+      "ticker_code": "360",
+      "vendor_symbol": "360.AX",
+      "status": "downloaded",
+      "row_count": 1844,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=360.csv",
+      "first_date": "2019-05-10",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "4DX",
+      "vendor_symbol": "4DX.AX",
+      "status": "downloaded",
+      "row_count": 1527,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=4DX.csv",
+      "first_date": "2020-08-07",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "A2M",
+      "vendor_symbol": "A2M.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=A2M.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AAI",
+      "vendor_symbol": "AAI.AX",
+      "status": "downloaded",
+      "row_count": 526,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AAI.csv",
+      "first_date": "2024-07-24",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AFI",
+      "vendor_symbol": "AFI.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AFI.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AGL",
+      "vendor_symbol": "AGL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AGL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AIA",
+      "vendor_symbol": "AIA.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AIA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ALD",
+      "vendor_symbol": "ALD.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ALD.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ALK",
+      "vendor_symbol": "ALK.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ALK.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ALL",
+      "vendor_symbol": "ALL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ALL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ALQ",
+      "vendor_symbol": "ALQ.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ALQ.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ALX",
+      "vendor_symbol": "ALX.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ALX.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AMC",
+      "vendor_symbol": "AMC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AMC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AMP",
+      "vendor_symbol": "AMP.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AMP.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ANN",
+      "vendor_symbol": "ANN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ANN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ANZ",
+      "vendor_symbol": "ANZ.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ANZ.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "APA",
+      "vendor_symbol": "APA.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=APA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "APE",
+      "vendor_symbol": "APE.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=APE.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ARB",
+      "vendor_symbol": "ARB.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ARB.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ARG",
+      "vendor_symbol": "ARG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ARG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ASB",
+      "vendor_symbol": "ASB.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ASB.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ASK",
+      "vendor_symbol": "ASK.AX",
+      "status": "downloaded",
+      "row_count": 23,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ASK.csv",
+      "first_date": "2026-07-17",
+      "last_date": "2026-08-18"
+    },
+    {
+      "ticker_code": "ASX",
+      "vendor_symbol": "ASX.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ASX.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AUB",
+      "vendor_symbol": "AUB.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AUB.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "AZJ",
+      "vendor_symbol": "AZJ.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=AZJ.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BEN",
+      "vendor_symbol": "BEN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BEN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BFL",
+      "vendor_symbol": "BFL.AX",
+      "status": "downloaded",
+      "row_count": 1289,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BFL.csv",
+      "first_date": "2021-07-16",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BGA",
+      "vendor_symbol": "BGA.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BGA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BGL",
+      "vendor_symbol": "BGL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BGL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BHP",
+      "vendor_symbol": "BHP.AX",
+      "status": "updated_existing",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BHP.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BOQ",
+      "vendor_symbol": "BOQ.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BOQ.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BPT",
+      "vendor_symbol": "BPT.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BPT.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BRG",
+      "vendor_symbol": "BRG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BRG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BSL",
+      "vendor_symbol": "BSL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BSL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BWP",
+      "vendor_symbol": "BWP.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BWP.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "BXB",
+      "vendor_symbol": "BXB.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=BXB.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CAR",
+      "vendor_symbol": "CAR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CAR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CBA",
+      "vendor_symbol": "CBA.AX",
+      "status": "updated_existing",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CBA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CDA",
+      "vendor_symbol": "CDA.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CDA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CEN",
+      "vendor_symbol": "CEN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CEN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CGF",
+      "vendor_symbol": "CGF.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CGF.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CHC",
+      "vendor_symbol": "CHC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CHC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CIA",
+      "vendor_symbol": "CIA.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CIA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CIP",
+      "vendor_symbol": "CIP.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CIP.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CLW",
+      "vendor_symbol": "CLW.AX",
+      "status": "downloaded",
+      "row_count": 2474,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CLW.csv",
+      "first_date": "2016-11-08",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CMM",
+      "vendor_symbol": "CMM.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CMM.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CNU",
+      "vendor_symbol": "CNU.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CNU.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "COH",
+      "vendor_symbol": "COH.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=COH.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "COL",
+      "vendor_symbol": "COL.AX",
+      "status": "downloaded",
+      "row_count": 1959,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=COL.csv",
+      "first_date": "2018-11-21",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CPU",
+      "vendor_symbol": "CPU.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CPU.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CQR",
+      "vendor_symbol": "CQR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CQR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CSC",
+      "vendor_symbol": "CSC.AX",
+      "status": "downloaded",
+      "row_count": 601,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CSC.csv",
+      "first_date": "2024-04-08",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CSL",
+      "vendor_symbol": "CSL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CSL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CTD",
+      "vendor_symbol": "CTD.AX",
+      "status": "downloaded",
+      "row_count": 2529,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CTD.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-18"
+    },
+    {
+      "ticker_code": "CWY",
+      "vendor_symbol": "CWY.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CWY.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "CYL",
+      "vendor_symbol": "CYL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=CYL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DBI",
+      "vendor_symbol": "DBI.AX",
+      "status": "downloaded",
+      "row_count": 1440,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DBI.csv",
+      "first_date": "2020-12-08",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DNL",
+      "vendor_symbol": "DNL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DNL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DOW",
+      "vendor_symbol": "DOW.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DOW.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DRO",
+      "vendor_symbol": "DRO.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DRO.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DRR",
+      "vendor_symbol": "DRR.AX",
+      "status": "downloaded",
+      "row_count": 1472,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DRR.csv",
+      "first_date": "2020-10-23",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DVP",
+      "vendor_symbol": "DVP.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DVP.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DXS",
+      "vendor_symbol": "DXS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DXS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "DYL",
+      "vendor_symbol": "DYL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=DYL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "EBO",
+      "vendor_symbol": "EBO.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=EBO.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "EDV",
+      "vendor_symbol": "EDV.AX",
+      "status": "downloaded",
+      "row_count": 1305,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=EDV.csv",
+      "first_date": "2021-06-24",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ELV",
+      "vendor_symbol": "ELV.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ELV.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "EMR",
+      "vendor_symbol": "EMR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=EMR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "EOS",
+      "vendor_symbol": "EOS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=EOS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "EVN",
+      "vendor_symbol": "EVN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=EVN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "EVT",
+      "vendor_symbol": "EVT.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=EVT.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "FBU",
+      "vendor_symbol": "FBU.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=FBU.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "FFM",
+      "vendor_symbol": "FFM.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=FFM.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "FLT",
+      "vendor_symbol": "FLT.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=FLT.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "FMG",
+      "vendor_symbol": "FMG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=FMG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "FPH",
+      "vendor_symbol": "FPH.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=FPH.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "FRW",
+      "vendor_symbol": "FRW.AX",
+      "status": "downloaded",
+      "row_count": 723,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=FRW.csv",
+      "first_date": "2023-10-10",
+      "last_date": "2026-08-18"
+    },
+    {
+      "ticker_code": "GDG",
+      "vendor_symbol": "GDG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=GDG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "GGP",
+      "vendor_symbol": "GGP.AX",
+      "status": "downloaded",
+      "row_count": 295,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=GGP.csv",
+      "first_date": "2025-06-24",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "GMD",
+      "vendor_symbol": "GMD.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=GMD.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "GMG",
+      "vendor_symbol": "GMG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=GMG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "GNE",
+      "vendor_symbol": "GNE.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=GNE.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "GPT",
+      "vendor_symbol": "GPT.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=GPT.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "GQG",
+      "vendor_symbol": "GQG.AX",
+      "status": "downloaded",
+      "row_count": 1217,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=GQG.csv",
+      "first_date": "2021-10-26",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "HDN",
+      "vendor_symbol": "HDN.AX",
+      "status": "downloaded",
+      "row_count": 1451,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=HDN.csv",
+      "first_date": "2020-11-23",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "HUB",
+      "vendor_symbol": "HUB.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=HUB.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "HVN",
+      "vendor_symbol": "HVN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=HVN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "IAG",
+      "vendor_symbol": "IAG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=IAG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "IFT",
+      "vendor_symbol": "IFT.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=IFT.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "IGO",
+      "vendor_symbol": "IGO.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=IGO.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ILU",
+      "vendor_symbol": "ILU.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ILU.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "IMD",
+      "vendor_symbol": "IMD.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=IMD.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "JBH",
+      "vendor_symbol": "JBH.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=JBH.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "KCN",
+      "vendor_symbol": "KCN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=KCN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "JHX",
+      "vendor_symbol": "JHX.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=JHX.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "L1G",
+      "vendor_symbol": "L1G.AX",
+      "status": "downloaded",
+      "row_count": 222,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=L1G.csv",
+      "first_date": "2025-10-03",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "LLC",
+      "vendor_symbol": "LLC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=LLC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "LNW",
+      "vendor_symbol": "LNW.AX",
+      "status": "downloaded",
+      "row_count": 820,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=LNW.csv",
+      "first_date": "2023-05-26",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "LOV",
+      "vendor_symbol": "LOV.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=LOV.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "LSF",
+      "vendor_symbol": "LSF.AX",
+      "status": "downloaded",
+      "row_count": 2108,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=LSF.csv",
+      "first_date": "2018-04-24",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "LTR",
+      "vendor_symbol": "LTR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=LTR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "LYC",
+      "vendor_symbol": "LYC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=LYC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MCY",
+      "vendor_symbol": "MCY.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MCY.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MEZ",
+      "vendor_symbol": "MEZ.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MEZ.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MFF",
+      "vendor_symbol": "MFF.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MFF.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MFG",
+      "vendor_symbol": "MFG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MFG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MGR",
+      "vendor_symbol": "MGR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MGR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MI6",
+      "vendor_symbol": "MI6.AX",
+      "status": "downloaded",
+      "row_count": 1227,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MI6.csv",
+      "first_date": "2021-10-12",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MIN",
+      "vendor_symbol": "MIN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MIN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MND",
+      "vendor_symbol": "MND.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MND.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MPL",
+      "vendor_symbol": "MPL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MPL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MQG",
+      "vendor_symbol": "MQG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MQG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MSB",
+      "vendor_symbol": "MSB.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MSB.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MTS",
+      "vendor_symbol": "MTS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MTS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "MXT",
+      "vendor_symbol": "MXT.AX",
+      "status": "downloaded",
+      "row_count": 2244,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=MXT.csv",
+      "first_date": "2017-09-28",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NAB",
+      "vendor_symbol": "NAB.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NAB.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NEM",
+      "vendor_symbol": "NEM.AX",
+      "status": "downloaded",
+      "row_count": 711,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NEM.csv",
+      "first_date": "2023-10-27",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NHC",
+      "vendor_symbol": "NHC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NHC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NHF",
+      "vendor_symbol": "NHF.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NHF.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NIC",
+      "vendor_symbol": "NIC.AX",
+      "status": "downloaded",
+      "row_count": 2026,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NIC.csv",
+      "first_date": "2018-08-20",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NST",
+      "vendor_symbol": "NST.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NST.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NWH",
+      "vendor_symbol": "NWH.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NWH.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NWL",
+      "vendor_symbol": "NWL.AX",
+      "status": "downloaded",
+      "row_count": 2213,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NWL.csv",
+      "first_date": "2017-11-20",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NWS",
+      "vendor_symbol": "NWS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NWS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NXG",
+      "vendor_symbol": "NXG.AX",
+      "status": "downloaded",
+      "row_count": 1299,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NXG.csv",
+      "first_date": "2021-07-02",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "NXT",
+      "vendor_symbol": "NXT.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=NXT.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "OBM",
+      "vendor_symbol": "OBM.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=OBM.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ORA",
+      "vendor_symbol": "ORA.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ORA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ORG",
+      "vendor_symbol": "ORG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ORG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ORI",
+      "vendor_symbol": "ORI.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ORI.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PDI",
+      "vendor_symbol": "PDI.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PDI.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PDN",
+      "vendor_symbol": "PDN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PDN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PLS",
+      "vendor_symbol": "PLS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PLS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PME",
+      "vendor_symbol": "PME.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PME.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PMV",
+      "vendor_symbol": "PMV.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PMV.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PNI",
+      "vendor_symbol": "PNI.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PNI.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PPT",
+      "vendor_symbol": "PPT.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PPT.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PRN",
+      "vendor_symbol": "PRN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PRN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PRU",
+      "vendor_symbol": "PRU.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PRU.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "PXA",
+      "vendor_symbol": "PXA.AX",
+      "status": "downloaded",
+      "row_count": 1300,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=PXA.csv",
+      "first_date": "2021-07-01",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "QAN",
+      "vendor_symbol": "QAN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=QAN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "QBE",
+      "vendor_symbol": "QBE.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=QBE.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RDX",
+      "vendor_symbol": "RDX.AX",
+      "status": "downloaded",
+      "row_count": 795,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RDX.csv",
+      "first_date": "2023-07-03",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "REA",
+      "vendor_symbol": "REA.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=REA.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "REG",
+      "vendor_symbol": "REG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=REG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "REH",
+      "vendor_symbol": "REH.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=REH.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RGN",
+      "vendor_symbol": "RGN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RGN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RHC",
+      "vendor_symbol": "RHC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RHC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RIO",
+      "vendor_symbol": "RIO.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RIO.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RMD",
+      "vendor_symbol": "RMD.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RMD.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RMS",
+      "vendor_symbol": "RMS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RMS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RRL",
+      "vendor_symbol": "RRL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RRL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RSG",
+      "vendor_symbol": "RSG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RSG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RWC",
+      "vendor_symbol": "RWC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RWC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "RYM",
+      "vendor_symbol": "RYM.AX",
+      "status": "downloaded",
+      "row_count": 221,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=RYM.csv",
+      "first_date": "2025-10-06",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "S32",
+      "vendor_symbol": "S32.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=S32.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SCG",
+      "vendor_symbol": "SCG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SCG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SDF",
+      "vendor_symbol": "SDF.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SDF.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SEK",
+      "vendor_symbol": "SEK.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SEK.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SFR",
+      "vendor_symbol": "SFR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SFR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SGH",
+      "vendor_symbol": "SGH.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SGH.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SGM",
+      "vendor_symbol": "SGM.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SGM.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SGP",
+      "vendor_symbol": "SGP.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SGP.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SHL",
+      "vendor_symbol": "SHL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SHL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SIG",
+      "vendor_symbol": "SIG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SIG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SMR",
+      "vendor_symbol": "SMR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SMR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SNZ",
+      "vendor_symbol": "SNZ.AX",
+      "status": "downloaded",
+      "row_count": 2529,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SNZ.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-18"
+    },
+    {
+      "ticker_code": "SOL",
+      "vendor_symbol": "SOL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SOL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SPK",
+      "vendor_symbol": "SPK.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SPK.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "STO",
+      "vendor_symbol": "STO.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=STO.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SUL",
+      "vendor_symbol": "SUL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SUL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "SUN",
+      "vendor_symbol": "SUN.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=SUN.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TAH",
+      "vendor_symbol": "TAH.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TAH.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TCL",
+      "vendor_symbol": "TCL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TCL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TLC",
+      "vendor_symbol": "TLC.AX",
+      "status": "downloaded",
+      "row_count": 1074,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TLC.csv",
+      "first_date": "2022-05-24",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TLS",
+      "vendor_symbol": "TLS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TLS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TLX",
+      "vendor_symbol": "TLX.AX",
+      "status": "downloaded",
+      "row_count": 2216,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TLX.csv",
+      "first_date": "2017-11-15",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TNE",
+      "vendor_symbol": "TNE.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TNE.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TPG",
+      "vendor_symbol": "TPG.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TPG.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TUA",
+      "vendor_symbol": "TUA.AX",
+      "status": "downloaded",
+      "row_count": 1555,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TUA.csv",
+      "first_date": "2020-06-30",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "TWE",
+      "vendor_symbol": "TWE.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=TWE.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "VAU",
+      "vendor_symbol": "VAU.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=VAU.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "VCX",
+      "vendor_symbol": "VCX.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=VCX.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "VEA",
+      "vendor_symbol": "VEA.AX",
+      "status": "downloaded",
+      "row_count": 2052,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=VEA.csv",
+      "first_date": "2018-07-13",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "VGN",
+      "vendor_symbol": "VGN.AX",
+      "status": "downloaded",
+      "row_count": 295,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=VGN.csv",
+      "first_date": "2025-06-24",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "VNT",
+      "vendor_symbol": "VNT.AX",
+      "status": "downloaded",
+      "row_count": 1199,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=VNT.csv",
+      "first_date": "2021-11-19",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WAF",
+      "vendor_symbol": "WAF.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WAF.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WAM",
+      "vendor_symbol": "WAM.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WAM.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WBC",
+      "vendor_symbol": "WBC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WBC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WDS",
+      "vendor_symbol": "WDS.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WDS.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WES",
+      "vendor_symbol": "WES.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WES.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WGX",
+      "vendor_symbol": "WGX.AX",
+      "status": "downloaded",
+      "row_count": 2454,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WGX.csv",
+      "first_date": "2016-12-06",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WHC",
+      "vendor_symbol": "WHC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WHC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WLE",
+      "vendor_symbol": "WLE.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WLE.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WOR",
+      "vendor_symbol": "WOR.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WOR.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WOW",
+      "vendor_symbol": "WOW.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WOW.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "WTC",
+      "vendor_symbol": "WTC.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=WTC.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "XRO",
+      "vendor_symbol": "XRO.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=XRO.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "YAL",
+      "vendor_symbol": "YAL.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=YAL.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ZIM",
+      "vendor_symbol": "ZIM.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ZIM.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    },
+    {
+      "ticker_code": "ZIP",
+      "vendor_symbol": "ZIP.AX",
+      "status": "downloaded",
+      "row_count": 2530,
+      "output_path": "/opt/airflow/data/raw/market_ohlcv_daily_v2/exchange=ASX/ticker=ZIP.csv",
+      "first_date": "2016-08-22",
+      "last_date": "2026-08-19"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "request_id": "asx200-ohlcv-smoke-30d",
+  "dataset_id": "market_ohlcv_daily_v2",
+  "exchange": "ASX",
+  "currency": "AUD",
+  "ticker_list": [
+    "BHP",
+    "CBA"
+  ],
+  "vendor_symbol_map": {
+    "BHP": "BHP.AX",
+    "CBA": "CBA.AX"
+  },
+  "earliest_start_date": null,
+  "lookback_days": 30,
+  "end_date": null
+}

@@ -1,4 +1,0 @@
-services:
-  php:
-    volumes:
-      - ./overlay_file_only_demo/php/solutions:/app/public/solutions:ro

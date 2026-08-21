@@ -1,0 +1,423 @@
+services:
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: minio
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+        reservations:
+          cpus: "0.05"
+          memory: 128M
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do
+          echo "Waiting for MinIO..."
+          sleep 5
+        done
+        mc mb --ignore-existing local/raw
+        mc mb --ignore-existing local/conformed
+        mc mb --ignore-existing local/curated
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+    restart: "no"
+
+  frankenphp:
+    image: dunglas/frankenphp:latest
+    container_name: frankenphp
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.05"
+          memory: 128M
+    ports:
+      - "${FRANKENPHP_PORT:-8088}:80"
+    environment:
+      SERVER_NAME: ":80"
+      TZ: "${TZ:-Australia/Melbourne}"
+    volumes:
+      - ../../shared/php:/app/public:ro
+      - ../../shared/config:/app/config:ro
+      - ../../shared/data:/app/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-airflow}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-airflow}"
+      POSTGRES_DB: "${POSTGRES_DB:-airflow}"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-airflow} -d ${POSTGRES_DB:-airflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  lakekeeper:
+    image: quay.io/lakekeeper/catalog:v0.12.1
+    container_name: lakekeeper
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+        reservations:
+          cpus: "0.05"
+          memory: 128M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      lakekeeper-migrate:
+        condition: service_completed_successfully
+    environment:
+      LAKEKEEPER__PG_DATABASE_URL_READ: "${LAKEKEEPER_PG_DATABASE_URL_READ:-postgresql://airflow:airflow@postgres:5432/airflow}"
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: "${LAKEKEEPER_PG_DATABASE_URL_WRITE:-postgresql://airflow:airflow@postgres:5432/airflow}"
+      LAKEKEEPER__PG_ENCRYPTION_KEY: "${LAKEKEEPER_PG_ENCRYPTION_KEY:-lakekeeper-dev-only-encryption-key}"
+      LAKEKEEPER__AUTHZ_BACKEND: allowall
+      LAKEKEEPER__BASE_URI: http://lakekeeper:8181
+    command:
+      - serve
+    ports:
+      - "${LAKEKEEPER_PORT:-8181}:8181"
+    healthcheck:
+      test: ["CMD", "/home/nonroot/lakekeeper", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+
+  lakekeeper-migrate:
+    image: quay.io/lakekeeper/catalog:v0.12.1
+    container_name: lakekeeper-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      LAKEKEEPER__PG_DATABASE_URL_READ: "${LAKEKEEPER_PG_DATABASE_URL_READ:-postgresql://airflow:airflow@postgres:5432/airflow}"
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: "${LAKEKEEPER_PG_DATABASE_URL_WRITE:-postgresql://airflow:airflow@postgres:5432/airflow}"
+      LAKEKEEPER__PG_ENCRYPTION_KEY: "${LAKEKEEPER_PG_ENCRYPTION_KEY:-lakekeeper-dev-only-encryption-key}"
+      LAKEKEEPER__AUTHZ_BACKEND: allowall
+    command:
+      - migrate
+    restart: "no"
+
+  trino:
+    image: trinodb/trino:481
+    container_name: trino
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
+        reservations:
+          cpus: "0.25"
+          memory: 1024M
+    depends_on:
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      lakekeeper:
+        condition: service_healthy
+    ports:
+      - "${TRINO_PORT:-8085}:8080"
+    volumes:
+      - ../../shared/trino/config.properties:/etc/trino/config.properties:ro
+      - ../../shared/trino/jvm.config:/etc/trino/jvm.config:ro
+      - ../../shared/trino/log.properties:/etc/trino/log.properties:ro
+      - ../../shared/trino/node.properties:/etc/trino/node.properties:ro
+      - ../../shared/trino/demo.properties:/etc/trino/catalog/demo.properties:ro
+      - ../../shared/trino/postgres.properties:/etc/trino/catalog/postgres.properties:ro
+    tmpfs:
+      - /var/trino/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/v1/info || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  airflow-init:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    image: open-source-data-lake-team/airflow:2.10.5-custom
+    container_name: airflow-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW_HOME: /opt/airflow
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "${AIRFLOW_SQL_ALCHEMY_CONN:-postgresql+psycopg2://airflow:airflow@postgres:5432/airflow}"
+      AIRFLOW__CORE__FERNET_KEY: "${AIRFLOW_FERNET_KEY:-8M8vBh1p3P6uI8m7sRj2eY4xTn0Qw5Za}"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "${AIRFLOW_WEBSERVER_SECRET_KEY:-knowledge-lake-airflow-web-secret}"
+      _AIRFLOW_WWW_USER_USERNAME: "${AIRFLOW_USERNAME:-admin}"
+      _AIRFLOW_WWW_USER_PASSWORD: "${AIRFLOW_PASSWORD:-admin}"
+      _AIRFLOW_WWW_USER_FIRSTNAME: "${AIRFLOW_FIRSTNAME:-Knowledge}"
+      _AIRFLOW_WWW_USER_LASTNAME: "${AIRFLOW_LASTNAME:-Lake}"
+      _AIRFLOW_WWW_USER_EMAIL: "${AIRFLOW_EMAIL:-admin@example.local}"
+    command:
+      - bash
+      - -lc
+      - |
+        set -euo pipefail
+        airflow db migrate
+        airflow users create \
+          --role Admin \
+          --username "$${_AIRFLOW_WWW_USER_USERNAME}" \
+          --password "$${_AIRFLOW_WWW_USER_PASSWORD}" \
+          --firstname "$${_AIRFLOW_WWW_USER_FIRSTNAME}" \
+          --lastname "$${_AIRFLOW_WWW_USER_LASTNAME}" \
+          --email "$${_AIRFLOW_WWW_USER_EMAIL}" || true
+    volumes:
+      - ../../shared/dags:/opt/airflow/dags:ro
+      - ../../shared/config:/opt/airflow/config:ro
+      - ../../shared/data:/opt/airflow/data
+      - ../../shared/scripts:/opt/airflow/scripts:ro
+      - airflow-logs:/opt/airflow/logs
+    restart: "no"
+
+  airflow-web:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    image: open-source-data-lake-team/airflow:2.10.5-custom
+    container_name: airflow-web
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1280M
+        reservations:
+          cpus: "0.1"
+          memory: 512M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW_HOME: /opt/airflow
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "False"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "${AIRFLOW_SQL_ALCHEMY_CONN:-postgresql+psycopg2://airflow:airflow@postgres:5432/airflow}"
+      AIRFLOW__CORE__FERNET_KEY: "${AIRFLOW_FERNET_KEY:-8M8vBh1p3P6uI8m7sRj2eY4xTn0Qw5Za}"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "${AIRFLOW_WEBSERVER_SECRET_KEY:-knowledge-lake-airflow-web-secret}"
+      AIRFLOW__WEBSERVER__WEB_SERVER_MASTER_TIMEOUT: "300"
+      PYTHONPATH: /opt/airflow/scripts
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION:-local-01}"
+      S3_ENDPOINT_URL: "http://minio:9000"
+    command:
+      - airflow
+      - webserver
+    ports:
+      - "${AIRFLOW_PORT:-8080}:8080"
+    volumes:
+      - ../../shared/dags:/opt/airflow/dags:ro
+      - ../../shared/config:/opt/airflow/config:ro
+      - ../../shared/data:/opt/airflow/data
+      - ../../shared/scripts:/opt/airflow/scripts:ro
+      - airflow-logs:/opt/airflow/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    image: open-source-data-lake-team/airflow:2.10.5-custom
+    container_name: airflow-scheduler
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+        reservations:
+          cpus: "0.1"
+          memory: 512M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW_HOME: /opt/airflow
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "${AIRFLOW_SQL_ALCHEMY_CONN:-postgresql+psycopg2://airflow:airflow@postgres:5432/airflow}"
+      AIRFLOW__CORE__FERNET_KEY: "${AIRFLOW_FERNET_KEY:-8M8vBh1p3P6uI8m7sRj2eY4xTn0Qw5Za}"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "${AIRFLOW_WEBSERVER_SECRET_KEY:-knowledge-lake-airflow-web-secret}"
+      PYTHONPATH: /opt/airflow/scripts
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION:-local-01}"
+      S3_ENDPOINT_URL: "http://minio:9000"
+    command:
+      - airflow
+      - scheduler
+    volumes:
+      - ../../shared/dags:/opt/airflow/dags:ro
+      - ../../shared/config:/opt/airflow/config:ro
+      - ../../shared/data:/opt/airflow/data
+      - ../../shared/scripts:/opt/airflow/scripts:ro
+      - airflow-logs:/opt/airflow/logs
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --local || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: docker/jupyter/Dockerfile
+    image: open-source-data-lake-team/jupyter:latest
+    container_name: jupyter
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 768M
+        reservations:
+          cpus: "0.1"
+          memory: 256M
+    environment:
+      JUPYTER_TOKEN: "${JUPYTER_TOKEN:-}"
+      PYTHONPATH: /home/jovyan/scripts
+      AWS_ACCESS_KEY_ID: "${MINIO_ROOT_USER:-minioadmin}"
+      AWS_SECRET_ACCESS_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+      AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION:-local-01}"
+      S3_ENDPOINT_URL: "http://minio:9000"
+    command:
+      - start-notebook.py
+      - --ServerApp.base_url=/
+      - --ServerApp.ip=0.0.0.0
+      - --ServerApp.port=8888
+      - --ServerApp.root_dir=/home/jovyan/work
+      - --ServerApp.token=${JUPYTER_TOKEN:-}
+      - --ServerApp.password=
+    ports:
+      - "${JUPYTER_PORT:-8888}:8888"
+    depends_on:
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - ../../shared/notebooks:/home/jovyan/work
+      - ../../shared/config:/home/jovyan/config:ro
+      - ../../shared/data:/home/jovyan/data
+      - ../../shared/scripts:/home/jovyan/scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8888/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  cloudbeaver:
+    build:
+      context: .
+      dockerfile: docker/cloudbeaver/Dockerfile
+    image: open-source-data-lake-team/cloudbeaver:latest
+    container_name: cloudbeaver
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 896M
+        reservations:
+          cpus: "0.1"
+          memory: 384M
+    ports:
+      - "${CLOUDBEAVER_PORT:-8978}:8978"
+    volumes:
+      - cloudbeaver-workspace:/opt/cloudbeaver/workspace
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/8978' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  minio-data:
+  postgres-data:
+  airflow-logs:
+  cloudbeaver-workspace:

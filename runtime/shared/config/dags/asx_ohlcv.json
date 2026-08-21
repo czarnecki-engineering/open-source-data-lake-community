@@ -1,0 +1,5 @@
+{
+  "tickers": ["BHP.AX", "RIO.AX", "CBA.AX"],
+  "period": "5d",
+  "interval": "1d"
+}
