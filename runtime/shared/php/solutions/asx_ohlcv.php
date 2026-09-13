@@ -90,7 +90,8 @@ ob_start();
 <div class="card">
   <h2>Execution Sequence</h2>
   <p>
-    Run the Airflow DAGs in the order shown below, then execute the Jupyter notebook.
+    Complete all required Airflow DAGs successfully before executing the Jupyter notebook.
+    The DAGs may be run in any order that satisfies their data dependencies.
     This page is read-only and does not trigger Airflow, mutate MinIO, or execute the notebook.
   </p>
   <div style="max-width: 100%; overflow-x: auto;">
@@ -208,6 +209,6 @@ ob_start();
 
 <?php
 $content = ob_get_clean();
-$page_title = 'Knowledge Lake Solution - ASX Publication Research';
+$page_title = 'Community Edition - ASX Publication Research';
 $page_description = 'Read-only ASX publication research solution page for the public Yahoo/yFinance Community data-lake implementation.';
 require __DIR__ . '/../inc/layout.php';
