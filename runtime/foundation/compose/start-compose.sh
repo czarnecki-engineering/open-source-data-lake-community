@@ -4,9 +4,8 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 repo_root="$(cd -- "$script_dir/../../.." && pwd -P)"
 compose_file="$script_dir/docker-compose.yaml"
-# Centralized config: the same file Kubernetes reads to generate its
-# shared-credentials Secret (see runtime/knowledge-lake/start-k8s.sh).
-# Only this file needs editing to change credentials/config for both stacks.
+# Community uses the shared runtime configuration file below. Other repository
+# variants use the same variable set so configuration stays aligned.
 env_file="$repo_root/runtime/shared/.env"
 compose_cmd=(docker compose -f "$compose_file")
 
