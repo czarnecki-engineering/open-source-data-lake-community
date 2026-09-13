@@ -45,7 +45,8 @@ docs/runtime/compose/   Compose troubleshooting documentation
 ## Prerequisites
 
 - Docker Desktop, or another Docker daemon with Docker Compose v2
-- Python 3 if you want to run the repository tests locally
+- `curl`, `python3`, and `shasum` for the supplied validation scripts
+- Python 3 and the listed Python dependencies if you want to run the repository tests locally
 
 ## Quick Start
 
