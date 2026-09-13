@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-# Compose equivalent of runtime/knowledge-lake/validate-config-first.sh.
-# The host-side checks (canonical file, no duplicates, no symlinks) are
-# identical to the k8s version — they check runtime/shared/, which both
-# stacks read from — the only difference is how in-container visibility
-# is checked (docker exec vs kubectl exec).
+# Community Compose validation for the config-first runtime pattern.
+# Other repository variants use equivalent validation patterns; this script
+# checks the Community repository's canonical config and Compose visibility.
 
 set -euo pipefail
 
