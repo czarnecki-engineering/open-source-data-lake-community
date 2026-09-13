@@ -1,48 +1,122 @@
-# Open Source Data Lake Team
+# Open Source Data Lake Community
 
-This repository is the working repository for the Open Source Data Lake Team runtime and architecture work.
+A self-contained, local Open Source Data Lake implementation for demonstrating an end-to-end data-lake workflow with open-source components.
 
-## Purpose
+The repository includes the runtime, configuration, pipelines, notebooks, presentation pages, validation scripts, and example workloads required to run the Community solution locally with Docker Compose.
 
-- Hold the current working runtime, architecture memory, ADRs, handoff notes, and implementation sequencing.
-- Provide one place to rationalise the Foundation baseline, Team runtime direction, and future Compose/Kubernetes alignment.
-- Preserve a stable working reference for ChatGPT, Codex, and local development sessions.
+## What It Demonstrates
 
-## Current Status
+The Community runtime provides a practical data path from ingestion through storage, transformation, Iceberg publication, query, analysis, and presentation.
 
-- This repository currently carries forward the Knowledge Lake rebuild structure as the starting point for Team work.
-- The handoff documents (capability matrix, next actions) and the ADRs are the source-of-truth inputs — see below.
-- Both the local Kubernetes path (`runtime/knowledge-lake/`) and the Docker Compose path (`runtime/foundation/compose/`) are validated, working runtimes as of 2026-08-20, sharing the same `runtime/shared/` mount tree and `runtime/shared/.env` config. They default to the same localhost ports and cannot run simultaneously.
+Configured runtime components include:
 
-## Relationship To Foundation And Team Runtime Work
+- MinIO — S3-compatible object storage
+- PostgreSQL — metadata database
+- Lakekeeper — Iceberg REST catalog
+- Trino — SQL query engine
+- Apache Airflow — pipeline orchestration
+- Jupyter — notebook analysis
+- FrankenPHP — lightweight presentation layer
+- CloudBeaver — database/query client
 
-- Foundation remains the baseline runtime reference.
-- This Team repository is the working place for reducing, reorganising, and stabilising the runtime shape.
-- Current direction is to simplify the service set where possible and align Kubernetes and Compose around the same repo-visible mount structure.
+Two example workloads are included:
+
+- `heartbeat` — a small proving pipeline for validating the complete runtime path
+- `asx_ohlcv` — a real-data ASX market-data pipeline and research workflow
+
+## Repository Layout
+
+```text
+runtime/
+  foundation/compose/   Docker Compose runtime, Dockerfiles and operational scripts
+  shared/
+    config/             Runtime and workload configuration
+    dags/               Airflow DAGs and workload helpers
+    data/               Generated local working artifacts
+    notebooks/          Jupyter analysis notebooks
+    php/                Community presentation pages
+    scripts/            Shared runtime scripts
+    trino/              Trino configuration
+
+tests/                  Python tests
+docs/runtime/compose/   Compose troubleshooting documentation
+```
+
+## Prerequisites
+
+- Docker Desktop, or another Docker daemon with Docker Compose v2
+- Python 3 if you want to run the repository tests locally
+
+## Quick Start
+
+From the repository root, create the local runtime configuration on first use:
+
+```bash
+cp runtime/shared/.env.example runtime/shared/.env
+```
+
+Start the complete Community runtime:
+
+```bash
+bash runtime/foundation/compose/start-compose.sh
+```
+
+Validate it:
+
+```bash
+bash runtime/foundation/compose/smoke-test.sh
+bash runtime/foundation/compose/validate-config-first.sh
+```
+
+The Community homepage is then available at:
+
+```text
+http://127.0.0.1:8088/index.php
+```
+
+For the complete URL/login table and workload execution instructions, see [`runtime/foundation/compose/README.md`](runtime/foundation/compose/README.md).
+
+## Repository Tests
+
+To run the Python tests independently of the runtime:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install pandas yfinance scipy pyarrow boto3
+python -m unittest discover -s tests -p 'test_*.py'
+```
+
+## Included Workloads
+
+### Heartbeat
+
+The heartbeat workload is the minimal end-to-end proving path. Its Airflow DAGs move a generated event through raw, conformed and curated storage before publishing an Iceberg table. The Jupyter notebook reads the published result and writes a local summary consumed by the presentation layer.
+
+### ASX OHLCV
+
+The ASX workload retrieves configured market data from Yahoo Finance, writes source data directly to MinIO, transforms it through conformed and curated stages, publishes Iceberg data, builds sector reference data, and supports the included publication/research notebook.
+
+Detailed execution order is documented in [`runtime/foundation/compose/README.md`](runtime/foundation/compose/README.md).
+
+## Shutdown
+
+Stop the runtime while retaining named-volume data:
+
+```bash
+bash runtime/foundation/compose/stop-compose.sh
+```
+
+For a destructive reset that also removes the runtime's named volumes:
+
+```bash
+bash runtime/foundation/compose/stop-compose.sh --volumes
+```
 
 ## Documentation
 
-**[`docs/README.md`](docs/README.md) is the full documentation index — start there for anything not listed below.**
+- [Compose runtime guide](runtime/foundation/compose/README.md)
+- [Compose troubleshooting](docs/runtime/compose/TROUBLESHOOTING.md)
 
-Quickest entry points:
-
-- [Runtime Capability Matrix](docs/handoff/runtime-capability-matrix.md) — what's accepted, unproven, deferred. Start here for project status.
-- Runtime guides — pick one stack, they share ports and can't both run at once: [Kubernetes](runtime/knowledge-lake/README.md) · [Docker Compose](runtime/foundation/compose/README.md).
-
-## How To Use This Repo
-
-1. Start with [`docs/README.md`](docs/README.md), or directly with the [Runtime Capability Matrix](docs/handoff/runtime-capability-matrix.md) and [Next Actions](docs/handoff/next-actions.md).
-2. Use [architecture context](docs/architecture/context.md), [principles](docs/architecture/principles.md), and [glossary](docs/architecture/glossary.md) as the shared working baseline.
-3. Record locked decisions in `docs/architecture/decisions/` before treating them as final.
-4. For the current local runtime workflow, pick one stack: [Kubernetes guide](runtime/knowledge-lake/README.md) + [`TROUBLESHOOTING.md`](docs/runtime/knowledge-lake/TROUBLESHOOTING.md), or [Compose guide](runtime/foundation/compose/README.md) + [`TROUBLESHOOTING.md`](docs/runtime/compose/TROUBLESHOOTING.md).
-
-## Working Direction
-
-- Keep runtime mounts repo-visible and easy to reason about.
-- Prefer one shared authored mount tree under `runtime/shared/` for both Kubernetes and future Compose work where practical.
-- Reduce unnecessary service breadth rather than expanding every runtime mode to the largest current stack.
-- Preserve Foundation compatibility unless an ADR explicitly changes direction.
-
-## Warning
-
-This repository is now a working Team repo, but much of the current structure was copied from the Knowledge Lake rebuild and should be treated as inherited starting state rather than final Team packaging.
+The runtime configuration and scripts are authoritative where documentation and implementation differ.
