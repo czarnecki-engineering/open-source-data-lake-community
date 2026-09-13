@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Compose equivalent of runtime/knowledge-lake/smoke-test.sh. Mirrors its
-# checks and messaging conventions so both stacks are validated the same
-# way: required tools, public entry containers healthy, public URLs
-# respond, and the live repo-backed mounts actually work bidirectionally.
+# Community Compose smoke test. Other repository variants use equivalent
+# validation patterns, while this script checks the local Compose runtime:
+# required tools, public entry containers, public URLs, and repo-backed mounts.
 
 set -euo pipefail
 
