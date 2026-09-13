@@ -172,8 +172,7 @@ ob_start();
 <div class="card">
   <h2>Prerequisites</h2>
   <ul>
-    <li>The validated local runtime must already be running through <code>runtime/knowledge-lake/start-k8s.sh</code>.</li>
-    <li>The foreground Minikube repo mount must remain healthy.</li>
+    <li>The validated Community runtime must already be running through <code>runtime/foundation/compose/start-compose.sh</code>.</li>
     <li>Airflow, MinIO, Lakekeeper, Trino, Jupyter, and FrankenPHP must all be available.</li>
     <li>The notebook must be run after the Airflow heartbeat chain if this page is expected to display the local summary payload.</li>
   </ul>
@@ -198,6 +197,6 @@ ob_start();
 <?php endif; ?>
 <?php
 $content = ob_get_clean();
-$page_title = 'Knowledge Lake Solution - Heartbeat';
-$page_description = 'Read-only heartbeat solution page for the deterministic local Knowledge Lake validation slice.';
+$page_title = 'Community Edition - Heartbeat';
+$page_description = 'Read-only heartbeat solution page for the deterministic local Community validation slice.';
 require __DIR__ . '/../inc/layout.php';
