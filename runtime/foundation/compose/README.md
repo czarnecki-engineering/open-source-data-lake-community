@@ -12,6 +12,19 @@ running — `start-compose.sh` builds and starts containers, so it needs the
 daemon reachable first. If it isn't running, `start-compose.sh` fails fast
 with `Error: Docker daemon is not running.`
 
+From the repository root, create and activate the local Python environment,
+then install the packages used by the tests:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install pandas yfinance scipy pyarrow boto3
+python -m unittest discover -s tests -p 'test_*.py'
+```
+
+Then start and validate the Compose runtime:
+
 ```bash
 cp runtime/shared/.env.example runtime/shared/.env   # first time only — skip if runtime/shared/.env already exists
 bash runtime/foundation/compose/start-compose.sh
@@ -88,31 +101,32 @@ look at these two files on your own machine after step 3:
   the Iceberg table, and Jupyter read it back out and saved state into the
   shared folder, all in one unbroken chain.
 
-`asx_ohlcv` follows the same shape, using real ASX200 market data pulled
-live from Yahoo Finance. Trigger these DAGs **in this exact order**, then
-run the notebook, exactly as with heartbeat above:
+`asx_ohlcv` follows the same shape, using real ASX market data pulled live
+from Yahoo Finance. For the publication/research workflow, trigger these
+DAGs **in this exact order**, waiting for each to finish green before
+triggering the next:
 
-- `asx_ohlcv_raw`
-- `asx_ohlcv_raw_to_conformed`
-- `asx_ohlcv_conformed_to_curated`
-- `asx_ohlcv_curated_to_iceberg`
-- notebook: `asx_ohlcv_analysis.ipynb` (`.executed.ipynb` alongside it is
-  the same kind of pre-run reference copy as heartbeat's)
+1. `asx_ohlcv_raw`
+2. `asx_ohlcv_raw_to_conformed`
+3. `asx_ohlcv_conformed_to_curated`
+4. `asx_ohlcv_curated_to_iceberg`
+5. `asx_sector_map_curated`
 
-`asx_ohlcv_raw` fetches all 201 tickers directly from Yahoo Finance straight
-into MinIO's `raw` bucket — no local-disk staging step, each ticker's REST
-response goes straight to `s3.put_object` in memory. Live-verified: a full
-cold run (no cached data) took under 5 minutes and produced 201/201 raw
-CSVs, 201/201 conformed Parquet files, 1 combined curated panel, and 201
-Iceberg summary rows (one per ticker) — same proof pattern as heartbeat,
-checked independently via `mc ls` and a Trino query, not just Airflow's
-green checkmarks.
+Then open **Jupyter** and run
+`runtime/shared/notebooks/asx_publication_research.ipynb` top to bottom.
+The sector-map DAG supplies the current Yahoo-derived ASX sector reference
+used by the pairs-trading research in that notebook.
 
-Same "how to know it worked" pattern applies:
-`runtime/shared/data/asx_ohlcv_summary.json` (written by the notebook) will
-contain `lake_summary.raw_object_count`, `conformed_object_count`, and
-`curated_object_count` all matching the ticker counts above, plus
-`trino_row_count: 201`.
+`asx_ohlcv_raw` fetches the configured ticker universe directly from Yahoo
+Finance straight into MinIO's `raw` bucket — no local-disk staging step;
+each ticker's response goes straight to `s3.put_object` in memory. The
+subsequent DAGs convert those objects to conformed Parquet, build the curated
+panel, publish the Iceberg summary, and build the sector reference used by
+the publication notebook.
+
+The earlier `asx_ohlcv_analysis.ipynb` remains available for the basic ASX
+pipeline analysis, but `asx_publication_research.ipynb` is the notebook for
+the publication/research workflow above.
 
 ## Troubleshooting
 
