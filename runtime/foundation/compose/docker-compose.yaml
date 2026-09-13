@@ -180,7 +180,7 @@ services:
       - ../../shared/trino/demo.properties:/etc/trino/catalog/demo.properties:ro
       - ../../shared/trino/postgres.properties:/etc/trino/catalog/postgres.properties:ro
     tmpfs:
-      - /var/trino/data
+      - /var/trino/data:uid=1000,gid=1000,mode=1777
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/v1/info || exit 1"]
       interval: 10s
@@ -300,7 +300,7 @@ services:
       resources:
         limits:
           cpus: "1"
-          memory: 1024M
+          memory: 2048M
         reservations:
           cpus: "0.1"
           memory: 512M

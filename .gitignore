@@ -3,6 +3,7 @@ logs/
 /data/
 volumes/
 notebooks/eda_output/
+.venv/
 
 # Secrets
 .env

@@ -4,7 +4,8 @@ import io
 import json
 import logging
 import os
-from datetime import UTC, date, datetime, timedelta
+import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib import error, request
@@ -12,6 +13,13 @@ from urllib import error, request
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+from asx200_ohlcv_local import (
+    IngestionConfig,
+    MinioPriceStore,
+    PriceIngestionService,
+    YahooFinanceClient,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -83,12 +91,17 @@ def get_s3_client() -> Any:
     )
 
 
-def _load_request_config() -> dict[str, Any]:
+def _request_config_path() -> Path:
     candidate = Path(
         os.getenv("ASX_REQUEST_CONFIG_PATH", str(REQUEST_CONFIG_PATH))
     ).expanduser().resolve()
     if not candidate.is_file():
-        return {}
+        raise RuntimeError(f"ASX request config was not found at {candidate}.")
+    return candidate
+
+
+def _load_request_config() -> dict[str, Any]:
+    candidate = _request_config_path()
     payload = json.loads(candidate.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise RuntimeError(f"ASX request config at {candidate} was not a JSON object.")
@@ -112,10 +125,6 @@ def _currency(config: dict[str, Any]) -> str:
 
 def _raw_object_key(config: dict[str, Any], ticker: str) -> str:
     return f"tabular/{_dataset_id(config)}/exchange={_exchange(config)}/ticker={ticker}.csv"
-
-
-def _raw_metadata_key(config: dict[str, Any], ticker: str) -> str:
-    return f"tabular/{_dataset_id(config)}/exchange={_exchange(config)}/ticker={ticker}.metadata.json"
 
 
 def _conformed_object_key(config: dict[str, Any], ticker: str) -> str:
@@ -168,287 +177,27 @@ def _normalise_frame(frame: pd.DataFrame, *, ticker: str, config: dict[str, Any]
     )
 
 
-def _parse_iso_date(value: str) -> date:
-    return date.fromisoformat(value)
-
-
-def _latest_available_trading_day(reference_dt: datetime | None = None) -> date:
-    current = (reference_dt or datetime.now(UTC)).date()
-    while current.weekday() >= 5:
-        current -= timedelta(days=1)
-    return current
-
-
-def _resolve_horizon(config: dict[str, Any]) -> tuple[str, str]:
-    end_date_value = str(config.get("end_date") or "").strip()
-    if end_date_value:
-        end_value = _parse_iso_date(end_date_value)
-    else:
-        end_value = _latest_available_trading_day()
-
-    earliest_start_date = str(config.get("earliest_start_date") or "").strip()
-    if earliest_start_date:
-        start_value = _parse_iso_date(earliest_start_date)
-    else:
-        lookback_days = int(config.get("lookback_days") or 0)
-        if lookback_days <= 0:
-            raise RuntimeError("ASX request config requires earliest_start_date or positive lookback_days.")
-        start_value = end_value - timedelta(days=lookback_days - 1)
-
-    if end_value < start_value:
-        raise RuntimeError("Resolved ASX request horizon has end_date before start_date.")
-    return start_value.isoformat(), end_value.isoformat()
-
-
-def _empty_daily_prices() -> pd.DataFrame:
-    return pd.DataFrame(columns=["trade_date", "open", "high", "low", "close", "volume"])
-
-
-def _vendor_symbol_for(config: dict[str, Any], ticker: str) -> str:
-    vendor_symbol_map = config.get("vendor_symbol_map", {})
-    return str(vendor_symbol_map.get(ticker, f"{ticker}.AX")).strip()
-
-
-def _download_raw_csv_frame(
-    *,
-    config: dict[str, Any],
-    ticker: str,
-    start_date: str | None = None,
-    end_date: str | None = None,
-    allow_empty: bool = False,
-) -> pd.DataFrame:
-    import yfinance  # noqa: PLC0415
-
-    vendor_symbol = _vendor_symbol_for(config, ticker)
-    resolved_start_date, resolved_end_date = _resolve_horizon(config)
-    start_date = start_date or resolved_start_date
-    end_date = end_date or resolved_end_date
-    frame = yfinance.download(
-        tickers=vendor_symbol,
-        start=start_date,
-        end=(pd.Timestamp(end_date) + pd.Timedelta(days=1)).date().isoformat(),
-        interval="1d",
-        auto_adjust=False,
-        progress=False,
-        threads=False,
-    )
-    if frame is None or frame.empty:
-        if allow_empty:
-            return _empty_daily_prices()
-        raise RuntimeError(f"No rows returned for {vendor_symbol} in window {start_date}..{end_date}.")
-
-    normalized = frame.reset_index()
-    normalized.columns = [
-        column[0].lower() if isinstance(column, tuple) else str(column).lower()
-        for column in normalized.columns
-    ]
-    if "date" in normalized.columns:
-        normalized.rename(columns={"date": "trade_date"}, inplace=True)
-    elif "datetime" in normalized.columns:
-        normalized.rename(columns={"datetime": "trade_date"}, inplace=True)
-    elif "index" in normalized.columns:
-        normalized.rename(columns={"index": "trade_date"}, inplace=True)
-    if "trade_date" not in normalized.columns:
-        raise RuntimeError(f"Expected trade_date column after yFinance normalization for {ticker}.")
-
-    normalized["trade_date"] = pd.to_datetime(normalized["trade_date"], errors="coerce").dt.date
-    normalized = normalized.dropna(subset=["trade_date"]).sort_values("trade_date")
-    if normalized.empty:
-        raise RuntimeError(f"No valid trade_date rows remained after yFinance normalization for {ticker}.")
-    normalized["trade_date"] = normalized["trade_date"].astype(str)
-    normalized["ticker"] = ticker
-    normalized["vendor_symbol"] = vendor_symbol
-    normalized["dataset_id"] = _dataset_id(config)
-    normalized["exchange"] = _exchange(config)
-    normalized["currency"] = _currency(config)
-    ordered_columns = [
-        "dataset_id",
-        "exchange",
-        "currency",
-        "ticker",
-        "vendor_symbol",
-        "trade_date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "adj close" if "adj close" in normalized.columns else None,
-        "volume",
-    ]
-    return normalized[[column for column in ordered_columns if column is not None and column in normalized.columns]]
-
-
-def _normalize_trade_dates(frame: pd.DataFrame) -> pd.DataFrame:
-    if "trade_date" not in frame.columns:
-        raise RuntimeError("Expected trade_date column in ASX raw CSV data.")
-    normalized = frame.copy()
-    normalized["trade_date"] = pd.to_datetime(normalized["trade_date"], errors="coerce").dt.date
-    normalized = normalized.dropna(subset=["trade_date"]).sort_values("trade_date")
-    if normalized.empty:
-        raise RuntimeError("No valid trade_date rows remained after normalization.")
-    normalized["trade_date"] = normalized["trade_date"].astype(str)
-    return normalized.reset_index(drop=True)
-
-
-def _read_existing_raw_frame(s3: Any, *, config: dict[str, Any], ticker: str) -> pd.DataFrame | None:
-    raw_key = _raw_object_key(config, ticker)
-    try:
-        response = s3.get_object(Bucket=RAW_BUCKET, Key=raw_key)
-    except Exception:
-        return None
-    return _normalize_trade_dates(pd.read_csv(io.BytesIO(response["Body"].read())))
-
-
-def _previous_day(value: str) -> str:
-    return (_parse_iso_date(value) - timedelta(days=1)).isoformat()
-
-
-def _next_day(value: str) -> str:
-    return (_parse_iso_date(value) + timedelta(days=1)).isoformat()
-
-
-def _earliest_available_trading_day(reference_date: date) -> date:
-    current = reference_date
-    while current.weekday() >= 5:
-        current += timedelta(days=1)
-    return current
-
-
-def _merge_frames(existing_frame: pd.DataFrame, *additional_frames: pd.DataFrame) -> pd.DataFrame:
-    frames = [existing_frame, *[frame for frame in additional_frames if not frame.empty]]
-    combined = pd.concat(frames, ignore_index=True, sort=False)
-    combined = _normalize_trade_dates(combined)
-    return combined.drop_duplicates(subset=["trade_date"], keep="last").sort_values("trade_date").reset_index(drop=True)
-
-
-def _load_raw_metadata(s3: Any, *, config: dict[str, Any], ticker: str) -> dict[str, Any]:
-    metadata_key = _raw_metadata_key(config, ticker)
-    try:
-        response = s3.get_object(Bucket=RAW_BUCKET, Key=metadata_key)
-    except Exception:
-        return {}
-    payload = json.loads(response["Body"].read().decode("utf-8"))
-    return payload if isinstance(payload, dict) else {}
-
-
-def _write_raw_metadata(s3: Any, *, config: dict[str, Any], ticker: str, payload: dict[str, Any]) -> None:
-    metadata_key = _raw_metadata_key(config, ticker)
-    s3.put_object(
-        Bucket=RAW_BUCKET,
-        Key=metadata_key,
-        Body=json.dumps(payload, indent=2, sort_keys=True).encode("utf-8"),
-        ContentType="application/json",
-    )
-
-
 def fetch_and_publish_raw_ohlcv(**_: Any) -> None:
-    config = _load_request_config()
-    s3 = get_s3_client()
-    requested_start_date, requested_end_date = _resolve_horizon(config)
-    requested_first_trade_date = _earliest_available_trading_day(_parse_iso_date(requested_start_date)).isoformat()
-    requested_last_trade_date = _latest_available_trading_day(
-        datetime.combine(_parse_iso_date(requested_end_date), datetime.min.time(), tzinfo=UTC)
-    ).isoformat()
+    config = IngestionConfig.from_file(_request_config_path())
+    service = PriceIngestionService(
+        client=YahooFinanceClient(),
+        store=MinioPriceStore(get_s3_client(), bucket=RAW_BUCKET),
+    )
+    result = service.ingest(config)
 
-    published = 0
-    skipped = 0
-    for ticker in [str(value).strip().upper() for value in config.get("ticker_list", [])]:
-        if not ticker:
-            continue
-        object_key = _raw_object_key(config, ticker)
-        existing_frame = _read_existing_raw_frame(s3, config=config, ticker=ticker)
-        metadata = _load_raw_metadata(s3, config=config, ticker=ticker)
-        if existing_frame is None:
-            frame = _download_raw_csv_frame(
-                config=config,
-                ticker=ticker,
-                start_date=requested_start_date,
-                end_date=requested_end_date,
-            )
-            status = "downloaded"
-            metadata = {
-                "ticker": ticker,
-                "vendor_symbol": _vendor_symbol_for(config, ticker),
-                "last_requested_start_date": requested_start_date,
-                "last_requested_end_date": requested_end_date,
-            }
-        else:
-            first_date = str(existing_frame["trade_date"].iloc[0])
-            last_date = str(existing_frame["trade_date"].iloc[-1])
-            known_earliest_trade_date = str(metadata.get("known_earliest_trade_date") or "").strip()
-            missing_before = requested_first_trade_date < first_date
-            if known_earliest_trade_date and requested_first_trade_date <= known_earliest_trade_date:
-                missing_before = False
-            missing_after = requested_last_trade_date > last_date
-            if not missing_before and not missing_after:
-                skipped += 1
-                LOGGER.info(
-                    "Skipping %s: existing raw object already covers %s..%s.",
-                    ticker,
-                    requested_start_date,
-                    requested_end_date,
-                )
-                continue
+    if result.ticker_count == 0:
+        raise RuntimeError("No ASX tickers were processed for MinIO raw ingestion.")
 
-            leading_frame = _empty_daily_prices()
-            trailing_frame = _empty_daily_prices()
-            if missing_before:
-                leading_end_date = _previous_day(first_date)
-                leading_frame = _download_raw_csv_frame(
-                    config=config,
-                    ticker=ticker,
-                    start_date=requested_first_trade_date,
-                    end_date=leading_end_date,
-                    allow_empty=True,
-                )
-                if leading_frame.empty:
-                    metadata["known_earliest_trade_date"] = first_date
-            if missing_after:
-                trailing_start_date = _next_day(last_date)
-                trailing_frame = _download_raw_csv_frame(
-                    config=config,
-                    ticker=ticker,
-                    start_date=trailing_start_date,
-                    end_date=requested_last_trade_date,
-                    allow_empty=True,
-                )
-            frame = _merge_frames(existing_frame, leading_frame, trailing_frame)
-            status = "updated_existing"
-
-        buffer = io.StringIO()
-        frame.to_csv(buffer, index=False)
-        s3.put_object(
-            Bucket=RAW_BUCKET,
-            Key=object_key,
-            Body=buffer.getvalue().encode("utf-8"),
-            ContentType="text/csv",
-        )
-        metadata["ticker"] = ticker
-        metadata["vendor_symbol"] = _vendor_symbol_for(config, ticker)
-        metadata["first_trade_date"] = str(frame["trade_date"].iloc[0])
-        metadata["last_trade_date"] = str(frame["trade_date"].iloc[-1])
-        metadata["last_requested_start_date"] = requested_start_date
-        metadata["last_requested_end_date"] = requested_end_date
-        metadata["updated_at"] = _utc_iso(datetime.now(UTC))
-        _write_raw_metadata(s3, config=config, ticker=ticker, payload=metadata)
-        published += 1
-        LOGGER.info(
-            "%s raw CSV object at s3://%s/%s with %d rows.",
-            "Updated" if status == "updated_existing" else "Published",
-            RAW_BUCKET,
-            object_key,
-            len(frame),
-        )
-
-    if published == 0 and skipped == 0:
-        raise RuntimeError("No ASX raw CSV objects were written to MinIO raw.")
-
+    published = sum(output.status in {"downloaded", "updated_existing"} for output in result.outputs)
+    skipped_existing = sum(output.status == "skipped_existing" for output in result.outputs)
+    skipped_no_data = sum(output.status == "skipped_no_data" for output in result.outputs)
     LOGGER.info(
-        "ASX raw ingestion complete. published=%d skipped=%d horizon=%s..%s.",
+        "ASX raw ingestion complete. published=%d skipped_existing=%d skipped_no_data=%d horizon=%s..%s.",
         published,
-        skipped,
-        requested_start_date,
-        requested_end_date,
+        skipped_existing,
+        skipped_no_data,
+        result.start_date,
+        result.end_date,
     )
 
 
@@ -463,7 +212,18 @@ def transform_raw_to_conformed(**_: Any) -> None:
             continue
         raw_key = _raw_object_key(config, ticker)
         conformed_key = _conformed_object_key(config, ticker)
-        response = s3.get_object(Bucket=RAW_BUCKET, Key=raw_key)
+        try:
+            response = s3.get_object(Bucket=RAW_BUCKET, Key=raw_key)
+        except Exception as exc:
+            if MinioPriceStore._is_not_found_error(exc):
+                LOGGER.warning(
+                    "Skipping conformed ASX ticker %s because raw object s3://%s/%s is unavailable.",
+                    ticker,
+                    RAW_BUCKET,
+                    raw_key,
+                )
+                continue
+            raise
         frame = _normalise_frame(
             pd.read_csv(io.BytesIO(response["Body"].read())),
             ticker=ticker,
@@ -516,137 +276,79 @@ def summarise_conformed_to_curated(**_: Any) -> None:
     config = _load_request_config()
     s3 = get_s3_client()
     prefix = f"tabular/{_dataset_id(config)}/exchange={_exchange(config)}/ticker="
-    conformed_keys = [key for key in _list_bucket_keys(s3, CONFORMED_BUCKET, prefix) if key.endswith(".parquet")]
+    conformed_keys = sorted(
+        key for key in _list_bucket_keys(s3, CONFORMED_BUCKET, prefix) if key.endswith(".parquet")
+    )
 
     if not conformed_keys:
         raise RuntimeError("No ASX conformed Parquet objects were found in MinIO.")
 
-    frames: list[pd.DataFrame] = []
-    for key in conformed_keys:
-        response = s3.get_object(Bucket=CONFORMED_BUCKET, Key=key)
-        buffer = io.BytesIO(response["Body"].read())
-        frames.append(pq.read_table(buffer).to_pandas())
-
-    curated = pd.concat(frames, ignore_index=True)
-    curated["trade_date"] = pd.to_datetime(curated["trade_date"], errors="coerce")
-    curated = curated.dropna(subset=["trade_date"])
-    for column in ("dataset_id", "exchange", "currency", "ticker", "vendor_symbol", "raw_bucket", "raw_key", "raw_uri"):
-        if column in curated.columns:
-            curated[column] = curated[column].map(lambda value: None if pd.isna(value) else str(value))
-    curated = curated.sort_values(["ticker", "trade_date", "ingest_ts"], ascending=[True, True, True])
-    curated = curated.drop_duplicates(subset=["dataset_id", "exchange", "ticker", "trade_date"], keep="last")
-    curated["trade_date"] = curated["trade_date"].dt.strftime("%Y-%m-%d")
-    curated["curated_at"] = _utc_iso(datetime.now(UTC))
-    curated["conformed_bucket"] = CONFORMED_BUCKET
-
-    table = pa.Table.from_pandas(curated, preserve_index=False)
-    buffer = io.BytesIO()
-    pq.write_table(table, buffer, compression="snappy")
-    buffer.seek(0)
+    curated_at = _utc_iso(datetime.now(UTC))
     curated_key = _curated_object_key(config)
-    s3.put_object(
-        Bucket=CURATED_BUCKET,
-        Key=curated_key,
-        Body=buffer.getvalue(),
-        ContentType="application/octet-stream",
-    )
-    LOGGER.info("Published curated ASX panel to s3://%s/%s.", CURATED_BUCKET, curated_key)
+    written_rows = 0
 
+    with tempfile.TemporaryFile() as output:
+        writer: pq.ParquetWriter | None = None
+        try:
+            for key in conformed_keys:
+                response = s3.get_object(Bucket=CONFORMED_BUCKET, Key=key)
+                frame = pq.read_table(io.BytesIO(response["Body"].read())).to_pandas()
+                frame["trade_date"] = pd.to_datetime(frame["trade_date"], errors="coerce")
+                frame = frame.dropna(subset=["trade_date"])
+                for column in (
+                    "dataset_id",
+                    "exchange",
+                    "currency",
+                    "ticker",
+                    "vendor_symbol",
+                    "raw_bucket",
+                    "raw_key",
+                    "raw_uri",
+                ):
+                    if column in frame.columns:
+                        frame[column] = frame[column].map(
+                            lambda value: None if pd.isna(value) else str(value)
+                        )
+                frame = frame.sort_values(
+                    ["ticker", "trade_date", "ingest_ts"],
+                    ascending=[True, True, True],
+                )
+                frame = frame.drop_duplicates(
+                    subset=["dataset_id", "exchange", "ticker", "trade_date"],
+                    keep="last",
+                )
+                frame["trade_date"] = frame["trade_date"].dt.strftime("%Y-%m-%d")
+                frame["curated_at"] = curated_at
+                frame["conformed_bucket"] = CONFORMED_BUCKET
 
-PUBLIC_CURATED_SOURCE_URL = (
-    "https://raw.githubusercontent.com/Marek-Czarnecki/data-analytics-capstone-public"
-    "/main/data/processed/market_ohlcv_daily_v2/exchange=ASX/asx_ohlcv_panel_clean.parquet"
-)
-PUBLIC_CURATED_SOURCE_LABEL = (
-    "github:Marek-Czarnecki/data-analytics-capstone-public@main:"
-    "data/processed/market_ohlcv_daily_v2/exchange=ASX/asx_ohlcv_panel_clean.parquet"
-)
+                if frame.empty:
+                    continue
 
+                table = pa.Table.from_pandas(frame, preserve_index=False)
+                if writer is None:
+                    writer = pq.ParquetWriter(output, table.schema, compression="snappy")
+                writer.write_table(table)
+                written_rows += len(frame)
+        finally:
+            if writer is not None:
+                writer.close()
 
-def fetch_curated_panel_from_public_source(**_: Any) -> None:
-    """Community-edition replacement for the raw -> conformed -> curated chain.
+        if written_rows == 0:
+            raise RuntimeError("No ASX curated rows were derived from conformed Parquet objects.")
 
-    Downloads a pre-cleaned, already panel-shaped Parquet file from a public
-    GitHub repo and writes it straight into the MinIO curated zone at the
-    exact key asx_ohlcv_curated_to_iceberg already reads from. No yFinance
-    call, no raw/conformed MinIO objects — the community edition doesn't
-    populate those buckets at all for this solution, by design.
-    """
-    config = _load_request_config()
-    s3 = get_s3_client()
-
-    req = request.Request(
-        PUBLIC_CURATED_SOURCE_URL,
-        headers={"User-Agent": "open-source-data-lake-team-community-edition"},
-    )
-    try:
-        with request.urlopen(req, timeout=120) as response:
-            payload = response.read()
-    except error.URLError as exc:
-        raise RuntimeError(
-            f"Failed to download curated panel from {PUBLIC_CURATED_SOURCE_URL}: {exc}"
-        ) from exc
-
-    if not payload:
-        raise RuntimeError(f"Public curated panel at {PUBLIC_CURATED_SOURCE_URL} was empty.")
-
-    table = pq.read_table(io.BytesIO(payload))
-    columns = set(table.schema.names)
-    required_columns = {"trade_date", "close", "volume"}
-    missing_required = required_columns - columns
-    if missing_required:
-        raise RuntimeError(
-            f"Public curated panel is missing required column(s) {sorted(missing_required)}. "
-            f"Columns present: {sorted(columns)}."
-        )
-    if "ticker" not in columns and "vendor_symbol" not in columns:
-        raise RuntimeError(
-            "Public curated panel has neither 'ticker' nor 'vendor_symbol' column."
-        )
-
-    frame = table.to_pandas()
-    ticker_column = "ticker" if "ticker" in frame.columns else "vendor_symbol"
-    frame[ticker_column] = frame[ticker_column].astype(str).str.strip().str.upper()
-
-    configured_tickers = {str(t).strip().upper() for t in config.get("ticker_list", [])}
-    if configured_tickers:
-        present_tickers = set(frame[ticker_column].unique())
-        missing_from_source = configured_tickers - present_tickers
-        if missing_from_source:
-            LOGGER.warning(
-                "Public curated panel is missing %d configured ticker(s): %s",
-                len(missing_from_source),
-                sorted(missing_from_source),
-            )
-        frame = frame[frame[ticker_column].isin(configured_tickers)].reset_index(drop=True)
-
-    if frame.empty:
-        raise RuntimeError(
-            "Public curated panel had no rows left after filtering to the configured ticker list."
+        output.seek(0)
+        s3.upload_fileobj(
+            output,
+            CURATED_BUCKET,
+            curated_key,
+            ExtraArgs={"ContentType": "application/octet-stream"},
         )
 
-    frame["curated_at"] = _utc_iso(datetime.now(UTC))
-    frame["curated_source"] = PUBLIC_CURATED_SOURCE_LABEL
-
-    out_table = pa.Table.from_pandas(frame, preserve_index=False)
-    buffer = io.BytesIO()
-    pq.write_table(out_table, buffer, compression="snappy")
-    buffer.seek(0)
-
-    curated_key = _curated_object_key(config)
-    s3.put_object(
-        Bucket=CURATED_BUCKET,
-        Key=curated_key,
-        Body=buffer.getvalue(),
-        ContentType="application/octet-stream",
-    )
     LOGGER.info(
-        "Published community curated ASX panel (%d rows, %d tickers) to s3://%s/%s from %s.",
-        len(frame),
-        frame[ticker_column].nunique(),
+        "Published curated ASX panel with %d rows to s3://%s/%s.",
+        written_rows,
         CURATED_BUCKET,
         curated_key,
-        PUBLIC_CURATED_SOURCE_URL,
     )
 
 
@@ -804,21 +506,6 @@ def _create_asx_summary_table(catalog: Any) -> Any:
 
 
 def _existing_run_keys(table: Any) -> set[tuple[str, str]]:
-    # NOTE: this dedup key is (ticker, run_date) only — it does not know or
-    # care which ingestion DAG produced the curated panel it's summarising.
-    # asx_ohlcv_raw (yFinance) and asx_ohlcv_curated_from_public_source
-    # (public GitHub Parquet) both write to the same curated bucket key and
-    # both feed this same DAG, so if BOTH run on the same calendar day,
-    # whichever ran first "wins" for that day — the second run's
-    # would-be-different summary values are silently skipped, not merged
-    # or overwritten. Live-reproduced 2026-08-21: running the yFinance path
-    # then the public-source path on the same day left Iceberg showing the
-    # yFinance numbers (fresher, coincidentally) even after the public-
-    # source curated panel had genuinely overwritten the MinIO object. In a
-    # real deployment this never actually collides — the full edition only
-    # ever runs the yFinance path, the community edition only ever runs the
-    # public-source path — this only matters if you deliberately run both
-    # in the same sandbox on the same day, as we did while proving this out.
     snapshots = table.metadata.snapshots or []
     if not snapshots:
         return set()
@@ -846,7 +533,11 @@ def _load_curated_asx_frame(config: dict[str, Any]) -> pd.DataFrame:
     s3 = get_s3_client()
     curated_key = _curated_object_key(config)
     response = s3.get_object(Bucket=CURATED_BUCKET, Key=curated_key)
-    frame = pq.read_table(io.BytesIO(response["Body"].read())).to_pandas()
+    columns = ["vendor_symbol", "ticker", "trade_date", "close", "volume", "ingest_ts"]
+    frame = pq.read_table(
+        io.BytesIO(response["Body"].read()),
+        columns=columns,
+    ).to_pandas()
     if frame.empty:
         raise RuntimeError("Curated ASX panel was empty.")
     return frame

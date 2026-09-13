@@ -8,5 +8,6 @@ RUN pip install --no-cache-dir \
     minio \
     pandas \
     pyarrow \
+    scipy \
     yfinance
 USER jovyan

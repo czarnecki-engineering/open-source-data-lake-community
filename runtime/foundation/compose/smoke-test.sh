@@ -109,13 +109,13 @@ check_php_live_mount() {
   printf '<?php echo "%s";\n' "${PHP_MARKER}" > "${PHP_TEST_FILE}"
 
   local response
-  if ! response="$(curl --silent --show-error --fail "http://127.0.0.1:${FRANKENPHP_PORT:-8088}/.smoke-test.php")"; then
-    fail "FrankenPHP did not serve temporary repo-mounted test file"
+  if ! response="$(docker exec "${FRANKENPHP_CONTAINER}" php "/app/public/$(basename "${PHP_TEST_FILE}")")"; then
+    fail "FrankenPHP container could not execute temporary repo-mounted test file"
     return
   fi
 
   if [[ "${response}" == "${PHP_MARKER}" ]]; then
-    pass "FrankenPHP live repo mount served host-written PHP content"
+    pass "FrankenPHP live repo mount exposed host-written PHP content"
   else
     fail "FrankenPHP live repo mount returned unexpected content: ${response}"
   fi

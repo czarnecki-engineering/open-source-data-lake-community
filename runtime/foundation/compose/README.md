@@ -114,44 +114,6 @@ contain `lake_summary.raw_object_count`, `conformed_object_count`, and
 `curated_object_count` all matching the ticker counts above, plus
 `trino_row_count: 201`.
 
-There's also a standalone `asx200_ohlcv_local_ingestion` DAG in the same
-`runtime/shared/dags/` folder — **it is not part of this pipeline.** It's an
-independent utility that downloads the same Yahoo Finance data to local CSV
-files under `/opt/airflow/data/raw/`, read by nothing else in this repo.
-Easy to mistake for a prerequisite since it sits right next to the real
-DAGs; it isn't one.
-
-#### Community edition: `asx_ohlcv` without yFinance
-
-`asx_ohlcv_curated_from_public_source` is a drop-in replacement for
-`asx_ohlcv_raw` → `asx_ohlcv_raw_to_conformed` → `asx_ohlcv_conformed_to_curated`
-— one DAG instead of three, no Yahoo Finance calls at all. It downloads a
-pre-cleaned, already panel-shaped Parquet file from a public GitHub repo
-and writes it straight into the same MinIO curated key the three DAGs above
-would have produced, so `asx_ohlcv_curated_to_iceberg` reads it completely
-unchanged:
-
-1. Trigger `asx_ohlcv_curated_from_public_source`.
-2. Trigger `asx_ohlcv_curated_to_iceberg`.
-3. Run `asx_ohlcv_analysis.ipynb`, same as the full pipeline.
-
-This is the path the public/community edition of this repo will ship —
-only Docker Compose config, no direct external API calls beyond the
-one-shot GitHub fetch. `asx_ohlcv_raw` and friends stay in this repo but
-won't be carried over to that edition.
-
-**One thing to know if you ever run both paths in the same environment on
-the same day**: `asx_ohlcv_curated_to_iceberg` dedupes by `(ticker,
-run_date)` only — it doesn't know which ingestion path produced the
-curated panel it's summarising. Whichever path's `curated_to_iceberg` run
-completes *first* on a given day "wins" for that day; the second run's
-(possibly different) numbers are silently skipped, not merged. This never
-actually happens in a real deployment — the full edition only runs the
-yFinance path, the community edition only runs the public-source path —
-it only matters if you deliberately run both in the same sandbox, as this
-repo's own testing does. See the comment at `_existing_run_keys` in
-`runtime/shared/dags/asx_ohlcv_runtime.py` for the live-reproduced detail.
-
 ## Troubleshooting
 
 Something not matching the above? Read
