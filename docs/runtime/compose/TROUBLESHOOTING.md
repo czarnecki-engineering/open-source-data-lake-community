@@ -1,159 +1,147 @@
-# Community Compose Runtime Troubleshooting
+# Community Compose Troubleshooting
 
-Operational troubleshooting for the Open Source Data Lake Community Docker Compose runtime.
+Use this page for specific Docker Compose runtime failures. For startup instructions, URLs and credentials, see [`runtime/foundation/compose/README.md`](../../../runtime/foundation/compose/README.md).
 
-## 1. Before You Debug Anything
-
-Confirm the basic runtime prerequisites first:
-
-- Run commands from the **repository root**.
-- **Docker Desktop** or another Docker daemon is running (`docker info` succeeds).
-- Docker Compose v2 is available (`docker compose version` succeeds).
-- **`runtime/shared/.env` exists** if you want to use local configuration rather than the defaults available in the Compose definition:
-
-```bash
-cp runtime/shared/.env.example runtime/shared/.env
-```
-
-- Nothing else is bound to the Community runtime's configured host ports.
-
-## 2. Golden Startup Path
-
-```bash
-bash runtime/foundation/compose/start-compose.sh
-bash runtime/foundation/compose/smoke-test.sh
-bash runtime/foundation/compose/validate-config-first.sh
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8088/index.php
-```
-
-## 3. Mandatory First Checks
+Before diagnosing a specific problem, check the current service state:
 
 ```bash
 docker compose -f runtime/foundation/compose/docker-compose.yaml ps
 ```
 
-Long-running services should show as running. One-shot initialisation or migration containers may show `Exited (0)` after successful completion; that is expected.
+## Port already in use
 
-## 4. Known Failure Modes And Fixes
+**Symptom**
 
-### 4.1 Port already in use
+`start-compose.sh` fails immediately, or Docker Compose reports that a host port is already allocated.
 
-**Symptom:** `start-compose.sh` fails immediately, or Docker Compose reports that a port is already allocated.
+**Check**
 
-**Cause:** Another local process or container is already listening on one of the configured host ports.
-
-**Fix:** Identify the process using the affected port. For example:
+Identify the process using the reported port. For example:
 
 ```bash
 lsof -nP -iTCP:8088 -sTCP:LISTEN
 ```
 
-Stop the conflicting process or change the corresponding port in `runtime/shared/.env`.
+**Fix**
 
-### 4.2 `airflow-web` / `airflow-scheduler` show `health: starting` for a while
+Stop the conflicting process, or change the corresponding port in `runtime/shared/.env`.
 
-This can be expected during first boot. Give the services time to initialise and then recheck:
+## Airflow remains in `health: starting`
+
+**Symptom**
+
+`airflow-web` or `airflow-scheduler` remains in `health: starting` after startup.
+
+**Check**
+
+For the web service:
 
 ```bash
 docker inspect --format '{{.State.Health.Status}}' airflow-web
-```
-
-If the service still does not become healthy, inspect its logs:
-
-```bash
 docker logs airflow-web --tail=50
 ```
 
-### 4.3 `Found orphan containers` warning on startup
+**Fix**
 
-**Symptom:** Docker Compose warns about orphan containers left by an earlier version of the Compose definition.
+Initial Airflow startup can take time. If the service does not become healthy, use the log output to identify the failing dependency or configuration before restarting the affected service.
 
-This does not necessarily indicate a failure in the current runtime. To remove containers no longer defined by the current Compose file:
+## `Found orphan containers` warning
+
+**Symptom**
+
+Docker Compose reports orphan containers left by an earlier runtime definition.
+
+**Check**
+
+Confirm the warning refers to containers no longer present in the current Compose file.
+
+**Fix**
 
 ```bash
 docker compose -f runtime/foundation/compose/docker-compose.yaml up -d --remove-orphans
 ```
 
-### 4.4 Dockerfile or dependency changes do not take effect
+## Dockerfile or dependency changes are not reflected
 
-**Cause:** Docker's build cache may reuse an existing image layer.
+**Symptom**
 
-**Fix:** Rebuild without the cache, then restart the runtime:
+A Dockerfile or image dependency was changed, but the running service still behaves like the old image.
+
+**Check**
+
+Confirm the affected service is built from the local Dockerfile rather than using only a published image.
+
+**Fix**
+
+Rebuild without Docker's layer cache, then restart:
 
 ```bash
 docker compose -f runtime/foundation/compose/docker-compose.yaml build --no-cache
 bash runtime/foundation/compose/start-compose.sh
 ```
 
-### 4.5 `stop-compose.sh --volumes` does not give you a clean slate
+## Full reset leaves old containers or volumes
 
-`docker compose down --volumes` removes volumes declared by the current Compose definition. Containers or volumes orphaned by older versions of the runtime may remain outside the current Compose model.
+**Symptom**
 
-Inspect them with:
+`stop-compose.sh --volumes` completes, but obsolete containers or volumes from an older runtime definition remain.
+
+**Check**
 
 ```bash
 docker ps -a
 docker volume ls
 ```
 
-If you identify an obsolete container or volume from an older Community runtime definition, remove it explicitly:
+**Fix**
+
+Remove only objects you have positively identified as obsolete:
 
 ```bash
 docker rm <orphan-container>
 docker volume rm <orphan-volume>
 ```
 
-These commands are destructive. Remove only objects you have identified as obsolete.
+These commands are destructive. Do not remove unidentified containers or volumes.
 
-### 4.6 `smoke-test.sh` or `validate-config-first.sh` cannot find a container
+## Validation cannot find an expected container
 
-**Symptom:** `docker inspect` errors, or a validation script reports that an expected container is not running or cannot be found.
+**Symptom**
 
-**Cause:** The runtime did not start successfully, or the implementation and validation script have become inconsistent.
+`smoke-test.sh` or `validate-config-first.sh` reports that an expected container is missing or not running.
 
-**Fix:** Start with:
+**Check**
 
 ```bash
 docker compose -f runtime/foundation/compose/docker-compose.yaml ps
 ```
 
-Then inspect the logs of the affected service before rerunning validation.
+Then inspect the affected service:
 
-### 4.7 A newly added DAG does not appear in Airflow Web
+```bash
+docker compose -f runtime/foundation/compose/docker-compose.yaml logs <service> --tail=100
+```
 
-**Symptom:** The DAG file is mounted correctly and may already be visible to the scheduler or CLI, but it does not appear in the Airflow Web UI.
+**Fix**
 
-The webserver can retain a stale in-process DAG view. First confirm that the DAG has no import error and is visible to Airflow. If the scheduler has loaded it but the web UI has not refreshed, restart only the webserver:
+Resolve the service startup failure first, then rerun the validation script. If the runtime is healthy but validation still references a missing container, treat that as an implementation/validation mismatch.
+
+## DAG does not appear in Airflow Web
+
+**Symptom**
+
+A newly added DAG is mounted and available to Airflow, but does not appear in the web UI.
+
+**Check**
+
+Confirm the DAG has no import error and is visible to the scheduler or Airflow CLI.
+
+**Fix**
+
+If the scheduler has loaded the DAG but the web UI remains stale, restart only the web service:
 
 ```bash
 docker compose -f runtime/foundation/compose/docker-compose.yaml restart airflow-web
 ```
 
-This restarts the Airflow web service without resetting the Community data-lake runtime.
-
-## 5. Shutdown
-
-Normal shutdown retains named-volume data:
-
-```bash
-bash runtime/foundation/compose/stop-compose.sh
-```
-
-A full reset also removes the named volumes managed by the current Compose definition:
-
-```bash
-bash runtime/foundation/compose/stop-compose.sh --volumes
-```
-
-Use the second form only when you intend to remove persisted local runtime state.
-
-## 6. Credentials And Access
-
-The complete URL and login table is maintained in [`runtime/foundation/compose/README.md`](../../../runtime/foundation/compose/README.md#local-urls-and-logins).
-
-Local runtime configuration is read from `runtime/shared/.env`; the tracked starting template is `runtime/shared/.env.example`.
+This does not reset the rest of the Community runtime.
